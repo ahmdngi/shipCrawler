@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.seed_cache.json
+data/
+

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipcrawler OSINT Dashboard v3</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="/static/css/shipcrawler.css">
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+
+<nav>
+  <a href="/" class="brand">🚢 <span>Shipcrawler</span></a>
+  <div class="nav-links">
+    <a href="https://github.com/ahmednaginasr/shipcrawler" target="_blank">GitHub</a>
+    <button onclick="ShipcrawlerUI.openThemeEditor()" title="Theme">🎨</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge"><span class="live-dot"></span> Shipcrawler OSINT v3</div>
+  <h1><span class="accent-gradient">OSINT</span> Reconnaissance Terminal</h1>
+  <p>Choose mode, then enter a vessel name/MMSI or person name to begin OSINT collection</p>
+
+  <div class="mode-toggle" id="mode-toggle">
+    <button class="mode-btn active" data-mode="vessel">🚢 Vessel OSINT</button>
+    <button class="mode-btn" data-mode="person">👤 Person OSINT</button>
+  </div>
+
+  <div class="search-container">
+    <form autocomplete="off" onsubmit="return false" style="display:flex;flex:1;gap:0.5rem;max-width:600px;">
+      <input type="text" style="display:none" aria-hidden="true">
+      <input type="password" style="display:none" aria-hidden="true">
+      <input type="text" id="search-input" placeholder="e.g. vessel name, MMSI, or person name" autocomplete="nope" spellcheck="false" name="srch_xyz">
+      <button id="search-btn" type="button">Search</button>
+    </form>
+  </div>
+
+  <div class="search-container" id="context-container" style="margin-top:0.6rem;max-width:600px;display:none">
+    <input type="text" id="context-input" placeholder="Context (e.g. PhD at TalTech, @twitterhandle)" style="flex:1;min-width:240px;background:var(--color-paper-2);border:1px solid var(--color-ink-3);border-radius:6px;padding:0.6rem 1rem;font-family:'Fira Code',monospace;font-size:0.85rem;color:var(--color-ink-2);outline:none;transition:border-color 0.2s;">
+  </div>
+
+  <div class="terminal-loader" id="terminal-loader">
+    <div class="line" data-step="0">$ shipcrawler --target <span id="target-display">...</span></div>
+    <div class="line" data-step="1">  Queueing search...</div>
+    <div class="line" data-step="2">  Hermes is researching...</div>
+    <div class="line" data-step="3">  Loading report...</div>
+    <div class="line" data-step="4">  Done.</div>
+  </div>
+</section>
+
+<div class="report-container" id="report-container">
+  <div class="report-header">
+    <div>
+      <div class="ts" id="mode-label">Mode: Vessel OSINT</div>
+      <div class="ts">Report generated: <span id="report-ts"></span></div>
+    </div>
+    <div class="report-actions">
+      <button onclick="ShipcrawlerCore.exportReport('json')">📦 JSON</button>
+      <button onclick="ShipcrawlerCore.exportReport('txt')">📄 TXT</button>
+      <button class="primary" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <!-- Vessel cards -->
+  <div id="vessel-cards">
+    <div class="card-wrapper">
+      <div class="card" data-card="vessel">
+        <div class="card-title"><span>🚢</span> Vessel Identity</div>
+        <div class="card-grid" id="vessel-fields"></div>
+      </div>
+      <div class="card" data-card="status">
+        <div class="card-title"><span>📍</span> Current Status</div>
+        <div class="card-grid" id="status-fields"></div>
+      </div>
+    </div>
+    <div class="card full-width" data-card="map" id="map-card" style="display:none">
+      <div class="card-title"><span>🗺️</span> Position</div>
+      <div id="map-container"></div>
+    </div>
+    <div class="card full-width" data-card="port-calls">
+      <div class="card-title"><span>⚓</span> Port Calls</div>
+      <div id="port-calls-content"></div>
+    </div>
+    <div class="card full-width" data-card="shodan">
+      <div class="card-title"><span>🌐</span> Shodan Attack Surface</div>
+      <div id="shodan-content"></div>
+    </div>
+    <div class="card full-width" data-card="red-team">
+      <div class="card-title"><span>⚔️</span> Red Team Playbook</div>
+      <div id="red-team-content"></div>
+    </div>
+    <div class="card full-width" data-card="detection">
+      <div class="card-title"><span>🔍</span> Detection Rules &amp; M-SOC Runbook</div>
+      <div id="detection-content"></div>
+    </div>
+    <div class="card full-width" data-card="analysis">
+      <div class="card-title"><span>📊</span> Operational Analysis</div>
+      <div id="analysis-content"></div>
+    </div>
+  </div>
+
+  <!-- Person cards -->
+  <div id="person-cards" style="display:none">
+    <div class="card-wrapper">
+      <div class="card" data-card="p-identity">
+        <div class="card-title"><span>👤</span> Person Identity</div>
+        <div class="card-grid" id="person-fields"></div>
+      </div>
+      <div class="card" data-card="p-analysis">
+        <div class="card-title"><span>📊</span> Exposure Analysis</div>
+        <div id="person-analysis-content"></div>
+      </div>
+      <div class="card" data-card="p-confidence">
+        <div class="card-title"><span>🎯</span> Confidence Assessment</div>
+        <div id="confidence-content"></div>
+      </div>
+    </div>
+    <div class="card full-width" data-card="p-professional">
+      <div class="card-title"><span>💼</span> Professional History</div>
+      <div id="professional-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-affiliation">
+      <div class="card-title"><span>📅</span> Affiliation Timeline</div>
+      <div id="affiliation-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-social">
+      <div class="card-title"><span>📱</span> Social Media &amp; Online Presence</div>
+      <div id="social-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-footprint">
+      <div class="card-title"><span>🕸️</span> Digital Footprint</div>
+      <div id="footprint-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-research-impact">
+      <div class="card-title"><span>📈</span> Research Impact</div>
+      <div id="research-impact-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-publications">
+      <div class="card-title"><span>📄</span> Publications</div>
+      <div id="publications-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-coauthors">
+      <div class="card-title"><span>🤝</span> Collaboration Network</div>
+      <div id="coauthors-content"></div>
+    </div>
+    <div class="card full-width" data-card="p-targeting">
+      <div class="card-title"><span>🎯</span> Targeting Scenarios</div>
+      <div id="targeting-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Theme Editor Modal -->
+<div class="modal-overlay" id="theme-editor-overlay">
+  <div class="modal-content">
+    <button class="close-btn" onclick="ShipcrawlerUI.closeThemeEditor()">✕</button>
+    <h3>🎨 Theme Editor</h3>
+    <p style="font-size:0.8rem;color:var(--color-ink-2);margin-bottom:1rem;">Edit the oklch color values. Changes preview live.</p>
+    <div class="theme-fields"></div>
+    <button onclick="ShipcrawlerUI.saveTheme()" style="margin-top:1rem;background:var(--color-accent);color:var(--color-accent-ink);border:none;border-radius:4px;padding:0.5rem 1rem;font-family:inherit;font-size:0.85rem;cursor:pointer;">💾 Save Theme</button>
+  </div>
+</div>
+
+<footer>Built by Ahmed Nagi Nasr · Shipcrawler v4 · Hermes-Powered · Queue-Based</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/shipcrawler-ui.js"></script>
+<script src="/static/js/shipcrawler-map.js"></script>
+<script src="/static/js/shipcrawler-core.js"></script>
+<script>
+// ── Particles ──────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, dots;
+  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resize); resize();
+  const count = 60;
+  dots = Array.from({length: count}, () => ({
+    x: Math.random() * w, y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+    r: Math.random() * 1.5 + 0.5,
+  }));
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (const d of dots) {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0) d.x = w; if (d.x > w) d.x = 0;
+      if (d.y < 0) d.y = h; if (d.y > h) d.y = 0;
+      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(108,138,148,0.12)'; ctx.fill();
+    }
+    for (let i = 0; i < dots.length; i++) {
+      for (let j = i + 1; j < dots.length; j++) {
+        const dx = dots[i].x - dots[j].x, dy = dots[i].y - dots[j].y, dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) {
+          ctx.beginPath(); ctx.moveTo(dots[i].x, dots[i].y); ctx.lineTo(dots[j].x, dots[j].y);
+          ctx.strokeStyle = `rgba(108,138,148,${0.06 * (1 - dist / 140)})`;
+          ctx.lineWidth = 0.5; ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Load saved theme ─────────────────────────────────
+ShipcrawlerUI.loadTheme();
+
+// ── Init core ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  ShipcrawlerCore.init();
+});
+
+function esc(s) {
+  if (typeof s !== 'string') return String(s || '');
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
