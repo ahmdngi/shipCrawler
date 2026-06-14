@@ -1,0 +1,10 @@
+{
+  "task_id": "72d9b5f3",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/mystar-report",
+  "report_files": [
+    "/root/mystar-report/analyst-report.md"
+  ],
+  "hermes_exit": 0
+}

@@ -138,7 +138,9 @@ const ShipcrawlerCore = (() => {
             els.btn.textContent = 'Search';
           } else if (st.status === 'error') {
             clearInterval(poll);
-            failLoader('Research failed: ' + (st.error || 'unknown error'));
+            els.vesselCards.style.display = 'none';
+            els.personCards.style.display = 'none';
+            failLoader('Research failed (exit ' + (st.hermes_exit || '?') + ')');
             els.btn.disabled = false;
             els.btn.textContent = 'Search';
           }
@@ -287,33 +289,43 @@ const ShipcrawlerCore = (() => {
   // ── Display Hermes Output ──────────────────────────────
   function displayHermesOutput(data, mode) {
     currentReport = data;
+    
+    // If we have structured data, use the card renderer
+    if (data.vessel_identity || data.person_identity) {
+      buildReport(data, mode);
+      return;
+    }
+    
+    // Fallback: raw text in pre tag
     const content = data.content || 'No output generated.';
     
-    // Show a simple terminal output card
+    // Remove any existing hermes card
+    const existing = document.getElementById('hermes-card');
+    if (existing) existing.remove();
+    
+    // Build the card
+    const card = document.createElement('div');
+    card.id = 'hermes-card';
+    card.className = 'card full-width visible';
+    card.style.cssText = 'border-color:var(--color-ink-3);margin-top:1rem;';
+    card.innerHTML =
+      '<div class="card-title"><span>🤖</span> Hermes Research Output</div>' +
+      '<pre style="white-space:pre-wrap;font-family:\'Fira Code\',monospace;font-size:0.78rem;line-height:1.5;color:var(--color-ink);padding:1rem;max-height:70vh;overflow-y:auto;background:rgba(0,0,0,0.3);border-radius:6px;">' + esc(content) + '</pre>';
+    
+    // Replace vessel/person cards with the Hermes card
+    els.vesselCards.style.display = 'block';
+    els.vesselCards.innerHTML = '';
+    els.vesselCards.appendChild(card);
+    els.personCards.style.display = 'none';
+    els.personCards.innerHTML = '';
+    
+    // Show the report
     els.reportEl.classList.add('visible');
     els.reportTs.textContent = new Date().toLocaleString();
     els.modeLabel.textContent = 'Mode: ' + (mode === 'person' ? 'Person' : 'Vessel') + ' OSINT (Hermes)';
     
-    // Hide all card sections, show the hermes-output div
-    els.vesselCards.style.display = 'none';
-    els.personCards.style.display = 'none';
-    
-    let outputContainer = document.getElementById('hermes-output');
-    if (!outputContainer) {
-      const container = document.createElement('div');
-      container.id = 'hermes-output';
-      container.style.cssText = 'width:100%;margin-top:1rem;';
-      els.reportEl.appendChild(container);
-      outputContainer = container;
-    }
-    
-    outputContainer.style.display = 'block';
-    outputContainer.innerHTML = `<div class="card full-width" style="border-color:var(--color-ink-3)">
-      <div class="card-title"><span>🤖</span> Hermes Research Output</div>
-      <pre style="white-space:pre-wrap;font-family:'Fira Code',monospace;font-size:0.78rem;line-height:1.5;color:var(--color-ink);padding:1rem;max-height:60vh;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:6px;">${esc(content)}</pre>
-    </div>`;
-    
-    setTimeout(ShipcrawlerUI.animateCards, 100);
+    // Scroll the page to show the card
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
   }
 
   // ── Export ──────────────────────────────────────────────────

@@ -5,9 +5,8 @@ Shipcrawler v4 Worker — watches the task queue, spawns Hermes to do the resear
 Flow:
   queue/pending/<task_id>.json  →  worker picks it up
                               →  queue/running/<task_id>.json
-                              →  `hermes chat -q "..." --skills shipcrawler,...`
-                              →  Hermes generates /root/<name>-report/
-                              →  queue/done/<task_id>.json  (with path to report)
+                              →  hermes --skills shipcrawler writes structured report files
+                              →  queue/done/<task_id>.json  (with path to report dir)
 """
 
 import json
@@ -32,45 +31,53 @@ POLL_INTERVAL = 5  # seconds between queue checks
 
 def sanitize_name(name):
     """Strip MMSI:/IMO: prefixes and special chars for filesystem safety."""
-    name = re.sub(r'^(MMSI|IMO)\s*[:]\s*', '', name, flags=re.IGNORECASE).strip()
+    name = re.sub(r'^(MMSI|IMO)\s*[:]?\s*', '', name, flags=re.IGNORECASE).strip()
     name = re.sub(r'[^\w\s-]', '', name).strip()
     return name or "vessel"
 
 
+def clean_for_filename(name):
+    """Turn a name into a safe lowercase-filename."""
+    return name.lower().replace(" ", "-")
+
+
 def generate_prompt(task):
-    """Build the Hermes prompt from a task dict."""
+    """Build the Hermes prompt."""
     name = task.get("name", "")
-    mode = task.get("mode", "person")
+    mode = task.get("mode", "vessel")
     context = task.get("context", "")
-    safe_name = sanitize_name(name)
-    report_dir_name = safe_name.lower().replace(" ", "-") + "-report"
-    report_dir = REPORT_BASE / report_dir_name
     context_clause = f" with context: {context}" if context else ""
 
     if mode == "person":
-        prompt = (
+        return (
             f'Use shipcrawler to research this person "{name}"{context_clause}. '
-            f"Search ORCID, Google Scholar, DBLP, and institutional pages. "
+            f"Search ORCID, Google Scholar, DBLP, Bing, GitHub, and institutional pages. "
             f"Give me their identity, employment, education, research impact (h-index, citations), "
             f"publications, and social media presence. "
             f"Be thorough but concise."
         )
     else:
-        prompt = (
+        return (
             f'Use shipcrawler to research this vessel "{name}"{context_clause}. '
-            f"Search VesselFinder, AIS sources, and Shodan (if API works). "
+            f"Search VesselFinder, AIS sources, and Shodan. "
             f"Give me the vessel identity (name, MMSI, IMO, flag, type, dimensions), "
             f"current status (position, speed, course, destination, navigation status), "
             f"port calls, and any Shodan findings. "
             f"Be thorough but concise."
         )
-    return prompt
 
 
 def run_hermes(task):
-    """Run Hermes with the task's prompt and capture output as the report."""
+    """Run Hermes with the task's prompt, save stdout as structured report files."""
     prompt = generate_prompt(task)
     task_id = task["task_id"]
+
+    # Create the report directory
+    name = task.get("name", "")
+    safe_name = sanitize_name(name)
+    dir_name = clean_for_filename(safe_name) + "-report"
+    report_dir = REPORT_BASE / dir_name
+    report_dir.mkdir(parents=True, exist_ok=True)
 
     cmd = [
         HERMES_BIN, "chat",
@@ -83,7 +90,7 @@ def run_hermes(task):
         "--source", "tool",
     ]
 
-    print(f"[worker {task_id}] Spawning Hermes...")
+    print(f"[worker {task_id}] Spawning Hermes...  report_dir={report_dir}")
     sys.stdout.flush()
 
     try:
@@ -91,7 +98,7 @@ def run_hermes(task):
             cmd,
             capture_output=True,
             text=True,
-            timeout=120,  # 2 min max
+            timeout=180,  # 3 min max
         )
         output = result.stdout
         hermes_stderr = result.stderr
@@ -99,25 +106,28 @@ def run_hermes(task):
         output = "TIMEOUT: Hermes took longer than 2 minutes"
         hermes_stderr = ""
         result = subprocess.CompletedProcess(cmd, -1, output, "")
-    except FileNotFoundError:
-        output = "ERROR: Hermes binary not found"
-        hermes_stderr = ""
-        result = subprocess.CompletedProcess(cmd, -1, output, "")
 
-    status = "done" if result.returncode == 0 and output else ("error" if result.returncode != 0 else "partial")
+    # Save Hermes stdout as analyst-report.md in the report directory
+    if output and output.strip():
+        report_file = report_dir / "analyst-report.md"
+        report_file.write_text(output[:50000])
+    else:
+        # Fallback: write error to a file so the renderer has something
+        report_file = report_dir / "analyst-report.md"
+        report_file.write_text(f"# {name} — OSINT Report\n\nHermes returned no output (exit={result.returncode}).\n\n{hermes_stderr}\n")
 
-    # Write Hermes output as the report
-    report_dir = REPORT_BASE / f"hermes-output-{task_id}"
-    report_dir.mkdir(parents=True, exist_ok=True)
-    report_file = report_dir / "report.txt"
-    report_file.write_text(output[:50000])  # cap at 50KB
+    # List report files
+    md_files = sorted(report_dir.glob("*.md"))
+    print(f"[worker {task_id}] Hermes exit={result.returncode}, written={report_file.name}, files={[f.name for f in md_files]}")
+
+    status = "done" if result.returncode == 0 else ("done" if md_files else "error")
 
     return {
         "task_id": task_id,
-        "mode": task.get("mode", "person"),
+        "mode": task.get("mode", "vessel"),
         "status": status,
         "report_dir": str(report_dir),
-        "report_files": [str(report_file)],
+        "report_files": [str(f) for f in md_files],
         "hermes_exit": result.returncode,
     }
 
@@ -133,7 +143,6 @@ def process_queue():
         with open(task_path) as f:
             task = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        # Corrupt task file — move to done with error
         done = {"task_id": "corrupt", "status": "error", "error": str(e)}
         done_path = DONE_DIR / (task_path.stem + ".json")
         with open(done_path, "w") as f:
@@ -163,7 +172,7 @@ def process_queue():
 
     print(f"[worker] Task {task['task_id']} → {result['status']}")
     if result.get("report_files"):
-        print(f"[worker]   Report: {result['report_dir']} ({len(result['report_files'])} files)")
+        print(f"[worker]   Report: {result['report_dir']} ({len(result['report_files'])} files): {[Path(f).name for f in result['report_files']]}")
     sys.stdout.flush()
 
     return True
@@ -175,7 +184,6 @@ def main():
     print(f"  Interval: {POLL_INTERVAL}s")
     sys.stdout.flush()
 
-    # Also accept a one-shot flag
     if len(sys.argv) > 1 and sys.argv[1] == "--once":
         process_queue()
         return

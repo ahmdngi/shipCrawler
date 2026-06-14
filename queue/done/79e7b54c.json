@@ -1,0 +1,10 @@
+{
+  "task_id": "79e7b54c",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/megastar-report",
+  "report_files": [
+    "/root/megastar-report/analyst-report.md"
+  ],
+  "hermes_exit": 0
+}

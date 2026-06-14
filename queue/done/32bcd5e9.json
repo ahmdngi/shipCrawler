@@ -1,0 +1,12 @@
+{
+  "task_id": "32bcd5e9",
+  "mode": "vessel",
+  "status": "error",
+  "report_dir": "/root/megastar-report",
+  "report_files": [
+    "/root/megastar-report/analyst-report.md",
+    "/root/megastar-report/indicators-and-detection.md",
+    "/root/megastar-report/red-team-playbook.md"
+  ],
+  "hermes_exit": -1
+}

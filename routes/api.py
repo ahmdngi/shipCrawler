@@ -66,6 +66,7 @@ def init_routes(app):
             return jsonify({
                 "task_id": task_id,
                 "status": result.get("status", "done"),
+                "hermes_exit": result.get("hermes_exit"),
                 "report_dir": result.get("report_dir"),
                 "report_files": result.get("report_files", []),
             })
@@ -80,7 +81,7 @@ def init_routes(app):
 
     @app.route("/api/report/<task_id>")
     def get_report(task_id):
-        """Read the Hermes output and return it as a text report."""
+        """Read the Hermes output and return structured card data (via renderer) + raw markdown files."""
         done_path = DONE_DIR / f"{task_id}.json"
         if not done_path.exists():
             return jsonify({"error": "task not found or not yet complete"}), 404
@@ -93,18 +94,29 @@ def init_routes(app):
             return jsonify({"error": "report not found"}), 404
 
         report_dir = Path(report_dir)
-        report_file = report_dir / "report.txt"
-        content = ""
-        if report_file.exists():
-            content = report_file.read_text()
+        mode = done_data.get("mode", "vessel")
 
-        return jsonify({
+        # Collect all markdown files as raw content for fallback
+        raw_markdown = {}
+        for md_file in sorted(report_dir.glob("*.md")):
+            raw_markdown[md_file.name] = md_file.read_text()
+        content_text = "\n\n---\n\n".join(raw_markdown.values())
+
+        # Use the shipcrawler renderer to build structured card data
+        from renderer import render as render_report
+        structured = render_report(report_dir, mode)
+
+        response = {
             "task_id": task_id,
-            "mode": done_data.get("mode", "person"),
+            "mode": mode,
             "status": done_data.get("status"),
-            "content": content,
+            "content": content_text,
             "report_dir": str(report_dir),
-        })
+        }
+        # Merge structured fields into the response
+        if "error" not in structured:
+            response.update(structured)
+        return jsonify(response)
 
     # ─── Health ───────────────────────────────────────────────────────────────
 

@@ -1,0 +1,10 @@
+{
+  "task_id": "32fb8b54",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/hermes-output-32fb8b54",
+  "report_files": [
+    "/root/hermes-output-32fb8b54/report.txt"
+  ],
+  "hermes_exit": 0
+}

@@ -11,19 +11,26 @@ from pathlib import Path
 
 
 def parse_section_blocks(text):
-    """Split markdown text into heading-anchored sections."""
+    """Split markdown text into heading-anchored sections. Handles #, ##, ###, etc."""
     sections = {}
     current_heading = None
     current_lines = []
 
     for line in text.split("\n"):
-        if line.startswith("## "):
+        m = re.match(r"^(#{1,6})\s+(.+)$", line)
+        if m:
+            level = len(m.group(1))
+            heading = m.group(2).strip()
             if current_heading:
                 sections[current_heading] = "\n".join(current_lines).strip()
-            current_heading = line[3:].strip()
-            current_lines = []
-        elif line.startswith("# "):
-            continue  # skip document title
+            # Use all headings (not just ##) but skip document title (#)
+            if level >= 2:
+                current_heading = heading
+                current_lines = []
+            else:
+                # # Title — skip
+                current_heading = None
+                current_lines = []
         else:
             current_lines.append(line)
 
@@ -77,6 +84,78 @@ def extract_tables(text):
         tables.append({"headers": headers, "rows": rows})
 
     return tables
+
+
+def extract_kv_table(text):
+    """Extract key-value pairs from a markdown table where col1=key, col2=value.
+    
+    Handles:
+    | Field | Value |
+    |---|---|
+    | **Name** | MEGASTAR |
+    | **IMO** | 9773064 |
+    """
+    pairs = {}
+    for line in text.split("\n"):
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.split("|")[1:-1]]
+        if len(cells) < 2:
+            continue
+        # Skip separator and header rows
+        if all(c.startswith("-") or c.startswith(":") or
+               c.lower() in ("field", "value", "attribute", "detail", "metric", "category", "confidence")
+               for c in cells):
+            continue
+        key = re.sub(r"\*\*", "", cells[0]).strip()
+        val = re.sub(r"\*\*", "", cells[1]).strip()
+        if key and val:
+            pairs[key] = val
+    return pairs
+
+
+def normalize_vessel_identity(identity):
+    """Normalize vessel identity field names to match frontend expectations."""
+    mapping = {
+        "name": "Name", "mmsi": "MMSI", "imo": "IMO", "flag": "Flag",
+        "type": "Type", "callsign": "Call Sign", "call sign": "Call Sign",
+        "port of registry": "Port of Registry", "owner/operator": "Owner/Operator",
+        "operator": "Owner/Operator", "built": "Year Built", "builder": "Builder",
+        "length / beam": "Dimensions", "tonnage": "Gross Tonnage",
+        "gross tonnage": "Gross Tonnage", "deadweight": "DWT",
+        "service speed": "Service Speed", "max speed": "Max Speed",
+        "capacity": "Passenger Capacity", "passenger capacity": "Passenger Capacity",
+        "ice class": "Ice Class", "route": "Route", "cost": "Cost",
+        "year built": "Year Built", "dimensions": "Dimensions",
+        "fuel": "Fuel", "propulsion": "Propulsion",
+    }
+    normalized = {}
+    for k, v in identity.items():
+        kl = k.lower().strip()
+        nk = mapping.get(kl, k)
+        normalized[nk] = v
+    return normalized
+
+
+def normalize_vessel_status(status):
+    """Normalize current status field names to match frontend expectations."""
+    mapping = {
+        "position": "Position", "location": "Position",
+        "navigation status": "Status", "status": "Status",
+        "sog": "Speed", "speed": "Speed", "average speed": "Speed",
+        "course": "Course", "cog": "Course", "heading": "Course", "true heading": "Course",
+        "destination": "Destination", "eta": "ETA",
+        "draught": "Draught", "last port": "Last Port",
+        "last ais update": "Last AIS Update", "last port": "Last Port",
+        "departure": "Departure", "distance travelled": "Distance Travelled",
+    }
+    normalized = {}
+    for k, v in status.items():
+        kl = k.lower().strip()
+        nk = mapping.get(kl, k)
+        normalized[nk] = v
+    return normalized
 
 
 def render_person_report(report_dir):
@@ -339,18 +418,28 @@ def render_vessel_report(report_dir):
         sections = parse_section_blocks(text)
 
         identity = {}
-        if "1. Vessel Identity" in sections or "Vessel Identity" in sections:
-            sec = sections.get("1. Vessel Identity", sections.get("Vessel Identity", ""))
-            for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
-                identity[m.group(1).strip()] = m.group(2).strip()
-        cards["vessel_identity"] = identity
+        # Try bold-colon format first: **Name**: Value
+        for sec_name in sections:
+            if "vessel identity" in sec_name.lower() or "identity" in sec_name.lower():
+                sec = sections[sec_name]
+                for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
+                    identity[m.group(1).strip()] = m.group(2).strip()
+                # Fallback: parse kv table | **Name** | Value |
+                if not identity:
+                    identity = extract_kv_table(sec)
+                break
+        cards["vessel_identity"] = normalize_vessel_identity(identity)
 
         status = {}
-        if "2. Current Status" in sections or "Current Status" in sections:
-            sec = sections.get("2. Current Status", sections.get("Current Status", ""))
-            for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
-                status[m.group(1).strip()] = m.group(2).strip()
-        cards["current_status"] = status
+        for sec_name in sections:
+            if "current status" in sec_name.lower() or "status" in sec_name.lower():
+                sec = sections[sec_name]
+                for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
+                    status[m.group(1).strip()] = m.group(2).strip()
+                if not status:
+                    status = extract_kv_table(sec)
+                break
+        cards["current_status"] = normalize_vessel_status(status)
 
         if "3. Port Call History" in sections:
             tables = extract_tables(sections["3. Port Call History"])
@@ -360,10 +449,15 @@ def render_vessel_report(report_dir):
         if "4. Internet Attack Surface" in sections or "Attack Surface" in sections:
             cards["shodan"] = {"summary": "See analyst report for details"}
 
-        if "7. Risk Tier" in sections or "7. Risk Tier & Triggers" in sections:
-            sec = sections.get("7. Risk Tier", sections.get("7. Risk Tier & Triggers", ""))
+        # Accept any section containing "risk tier" (numbering varies)
+        risk_sec = None
+        for sec_name in sections:
+            if "risk tier" in sec_name.lower():
+                risk_sec = sections[sec_name]
+                break
+        if risk_sec:
             cards["analysis"] = {"risk_tier": "LOW"}
-            for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
+            for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", risk_sec):
                 if "tier" in m.group(1).lower():
                     cards["analysis"]["risk_tier"] = m.group(2).strip()
 

@@ -1,0 +1,10 @@
+{
+  "task_id": "a8834e03",
+  "mode": "person",
+  "status": "done",
+  "report_dir": "/root/hermes-output-a8834e03",
+  "report_files": [
+    "/root/hermes-output-a8834e03/report.txt"
+  ],
+  "hermes_exit": 0
+}
