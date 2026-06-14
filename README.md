@@ -1,4 +1,4 @@
-# Shipcrawler v6.1 — Phase Agent OSINT Dashboard
+# Shipcrawler v6.3 — AI Agent OSINT Dashboard
 
 Real-time, phase-by-phase Hermes agent investigation with SSE streaming.
 
@@ -54,6 +54,23 @@ Dashboard: `http://100.72.133.89:9091`
 | `/api/health` | GET | Queue health check |
 
 ## Changelog
+
+### v6.3
+- Real-time tool-call streaming: worker now uses Popen to read Hermes output line-by-line
+- Frontend shows live tool calls with colored badges (EQUASIS=blue, SHODAN=pink, WEB=green, BROWSER=purple, BASH=orange)
+- Per-line classification: tool_start, tool_detail, thinking, output with distinct styling
+- Live timer per phase (1s tick, pulses green)
+- Pulsing badge animation for active phase
+- Comprehensive single-session agent (full context → red-team + detection rules)
+
+### v6.2
+- Fixed phase completion UI: spinner now correctly flips to ✅ (used `.phase-start` selector instead of `lastChild`)
+- Fixed sidebar: saves metadata only (~200 bytes per entry), fetches report data from API on click
+- Added right panel for phase file browsing (collapsible, click to view raw phase output)
+- Added phase file content to API response (`phase_contents` key in `/api/report/`)
+- Increased per-phase timeout 300s → 600s (prevents Phase 1 AIS timeout)
+- Rebranded "Hermes" → "AI Agent" in UI text
+- Version bump to v6.2
 
 ### v6.1
 - Added sidebar with search history (localStorage, persisted across sessions)

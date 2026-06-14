@@ -126,7 +126,64 @@ def init_routes(app):
             },
         )
 
-    # ─── Get report data ──────────────────────────────────────────────────────
+    # ─── Get report by name (fallback when done file is gone) ────
+
+    @app.route("/api/report/by-name/<name>")
+    def get_report_by_name(name):
+        """Find report directory by vessel/person name (deterministic path)."""
+        from worker import clean_for_filename, REPORT_BASE
+        dir_name = clean_for_filename(name) + "-report"
+        report_dir = REPORT_BASE / dir_name
+
+        if not report_dir.exists():
+            return jsonify({"error": f"no report found for '{name}'"}), 404
+
+        # Reconstruct minimal done_data
+        mode = "vessel"
+        done_data = {
+            "task_id": name,
+            "mode": mode,
+            "status": "done",
+            "report_dir": str(report_dir),
+        }
+        return _build_report_response(done_data, report_dir)
+
+    def _build_report_response(done_data, report_dir):
+        """Shared logic: read report dir and return structured JSON."""
+        mode = done_data.get("mode", "vessel")
+
+        phase_files = sorted(report_dir.glob("phase-*.md"))
+        phase_data = {}
+        for pf in phase_files:
+            phase_data[pf.stem] = pf.read_text()
+
+        raw_markdown = {}
+        for md_file in sorted(report_dir.glob("*.md")):
+            raw_markdown[md_file.name] = md_file.read_text()
+
+        content_text = "\n\n---\n\n".join(raw_markdown.values())
+
+        try:
+            from renderer import render as render_report
+            structured = render_report(report_dir, mode)
+        except Exception as e:
+            structured = {"error": str(e)}
+
+        response = {
+            "task_id": done_data.get("task_id", "unknown"),
+            "mode": mode,
+            "status": done_data.get("status", "done"),
+            "content": content_text,
+            "report_dir": str(report_dir),
+            "duration_total": done_data.get("duration_total"),
+            "phase_files": list(phase_data.keys()),
+            "phase_contents": phase_data,
+        }
+        if "error" not in structured:
+            response.update(structured)
+        return jsonify(response)
+
+    # ─── Get report data ──────────────────────────────────────
 
     @app.route("/api/report/<task_id>")
     def get_report(task_id):
@@ -142,40 +199,7 @@ def init_routes(app):
             return jsonify({"error": "report not found"}), 404
 
         report_dir = Path(report_dir)
-        mode = done_data.get("mode", "vessel")
-
-        # Read all phase files
-        phase_files = sorted(report_dir.glob("phase-*.md"))
-        phase_outputs = {}
-        for pf in phase_files:
-            phase_outputs[pf.stem] = pf.read_text()
-
-        # Read the full report
-        raw_markdown = {}
-        for md_file in sorted(report_dir.glob("*.md")):
-            raw_markdown[md_file.name] = md_file.read_text()
-
-        content_text = "\n\n---\n\n".join(raw_markdown.values())
-
-        # Use the shipcrawler renderer to build structured card data
-        try:
-            from renderer import render as render_report
-            structured = render_report(report_dir, mode)
-        except Exception as e:
-            structured = {"error": str(e)}
-
-        response = {
-            "task_id": task_id,
-            "mode": mode,
-            "status": done_data.get("status"),
-            "content": content_text,
-            "report_dir": str(report_dir),
-            "duration_total": done_data.get("duration_total"),
-            "phase_files": list(phase_outputs.keys()),
-        }
-        if "error" not in structured:
-            response.update(structured)
-        return jsonify(response)
+        return _build_report_response(done_data, report_dir)
 
     # ─── Health ───────────────────────────────────────────────────────────────
 

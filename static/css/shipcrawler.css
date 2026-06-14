@@ -200,6 +200,11 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
 .phase-complete .phase-content { color:var(--color-ink); }
 .phase-error .phase-content { color:var(--color-accent); }
 .phase-progress { padding-left:0.5rem; }
+.phase-tool_start .phase-badge { min-width:5rem; }
+.phase-tool_error .phase-content { color:var(--color-accent); }
+.phase-tool_detail { padding-left:0.5rem; }
+.phase-thinking { padding-left:0.5rem; }
+.phase-output { padding-left:0.5rem; }
 .phase-indent { width:0; flex-shrink:0; }
 .spinner {
   display:inline-block;
@@ -208,6 +213,28 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
 @keyframes spin {
   0% { transform:rotate(0deg); }
   100% { transform:rotate(360deg); }
+}
+
+/* Live phase timer */
+.phase-timer {
+  color:var(--color-green);
+  font-size:0.72rem;
+  margin-left:0.4rem;
+  font-weight:bold;
+  animation: pulse-timer 1.5s ease-in-out infinite;
+}
+@keyframes pulse-timer {
+  0%, 100% { opacity:1; }
+  50% { opacity:0.5; }
+}
+
+/* Pulsing active phase badge */
+.phase-line.phase-start .phase-badge {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { filter:brightness(1); }
+  50% { filter:brightness(1.3); }
 }
 
 /* ─── Final Summary Bar ─────────────────────────────────── */
@@ -553,5 +580,49 @@ footer {
 .sidebar.closed .sidebar-toggle { position:static; }
 
 /* Push main content right when sidebar open */
-body { margin-left:260px; transition:margin-left 0.25s ease; }
+body { margin-left:260px; margin-right:260px; transition:margin 0.25s ease; }
 body.sidebar-closed { margin-left:30px; }
+body.right-panel-closed { margin-right:30px; }
+
+/* ─── Right Panel (Phase Files) ──────────────────────────── */
+.right-panel {
+  position:fixed; top:0; right:0; z-index:140;
+  width:260px; height:100vh;
+  background:var(--color-paper-3);
+  border-left:1px solid var(--color-ink-3);
+  display:flex; flex-direction:column;
+  transition:transform 0.25s ease;
+}
+.right-panel.closed { transform:translateX(230px); }
+.right-panel.closed .right-panel-toggle { left:-30px; transform:rotate(180deg); }
+.right-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem; border-bottom:1px solid var(--color-ink-3);
+}
+.right-panel-title { font-size:0.85rem; font-weight:bold; color:var(--color-ink); }
+.right-panel-toggle {
+  background:var(--color-paper-2); border:1px solid var(--color-ink-3);
+  border-radius:4px; padding:0.2rem 0.5rem;
+  font-size:0.75rem; color:var(--color-ink-2); cursor:pointer;
+  position:absolute; left:8px; transition:left 0.25s ease, transform 0.25s ease;
+}
+.right-panel-toggle:hover { color:var(--color-ink); background:var(--color-paper-3); }
+.right-panel-list {
+  flex:1; overflow-y:auto; padding:0.5rem;
+}
+.right-panel-list::-webkit-scrollbar { width:3px; }
+.right-panel-list::-webkit-scrollbar-thumb { background:var(--color-ink-3); border-radius:2px; }
+.right-panel-item {
+  padding:0.4rem 0.6rem; margin-bottom:0.25rem;
+  border-radius:4px; cursor:pointer; font-size:0.78rem;
+  transition:background 0.15s; color:var(--color-ink-2);
+}
+.right-panel-item:hover { background:var(--color-paper-2); color:var(--color-ink); }
+.right-panel-item.active { background:var(--color-paper-2); color:var(--color-accent); }
+.right-panel-empty { padding:1rem; text-align:center; color:var(--color-ink-3); font-size:0.78rem; }
+
+/* closed state */
+.right-panel.closed .right-panel-header .right-panel-title,
+.right-panel.closed .right-panel-list { display:none; }
+.right-panel.closed .right-panel-header { justify-content:flex-start; padding:1rem 0.5rem; }
+.right-panel.closed .right-panel-toggle { position:static; }

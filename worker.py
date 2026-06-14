@@ -26,28 +26,10 @@ QUEUE_DIR = BASE_DIR / "queue"
 PENDING_DIR = QUEUE_DIR / "pending"
 RUNNING_DIR = QUEUE_DIR / "running"
 DONE_DIR = QUEUE_DIR / "done"
-REPORT_BASE = Path("/root")
+REPORT_BASE = Path("/root/hermes-vault/osint-reports")
 
 HERMES_BIN = "hermes"
 POLL_INTERVAL = 5
-
-PHASES = [
-    (0, "Equasis — Vessel Identity", "vessel"),
-    (1, "Target Identification", "vessel"),
-    (2, "Attack Surface Discovery", "vessel"),
-    (3, "Vulnerability Assessment", "vessel"),
-    (4, "Threat Intelligence", "vessel"),
-    (5, "Report Generation", "vessel"),
-]
-
-PERSON_PHASES = [
-    (0, "Identity & Academic Sources", "person"),
-    (1, "Research Impact Analysis", "person"),
-    (2, "Social & Digital Footprint", "person"),
-    (3, "Professional Network & Timeline", "person"),
-    (4, "Targeting Scenarios", "person"),
-    (5, "Report Generation", "person"),
-]
 
 
 def sanitize_name(name):
@@ -60,257 +42,61 @@ def clean_for_filename(name):
     return name.lower().replace(" ", "-")
 
 
-def build_phase_prompt(phase_num: int, phase_name: str, name: str, mode: str,
-                       context: str, previous_findings: str = "") -> str:
-    """Build a self-contained Hermes prompt for a specific shipcrawler phase."""
-
+def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
+    """Build a single comprehensive Hermes prompt using the full shipcrawler skill."""
     base_context = f"Research context: {context}" if context else ""
 
-    vessel_prompts = {
-        0: (
-            f"Using the shipcrawler OSINT framework, execute Phase 0 (Vessel Identity from Equasis) "
-            f"on the vessel \"{name}\".\n\n"
-            f"1. Use equasis-cli to look up the vessel's IMO number, name, flag, call sign, MMSI, "
-            f"GT, DWT, vessel type, year built, status, management companies, and classification societies.\n"
-            f"2. Present the findings in a clear structured format with field labels.\n"
-            f"3. If Equasis is rate-limited, wait 30-60s and retry.\n"
-            f"4. If you cannot determine the IMO, search for it first.\n\n"
+    if mode == "person":
+        return (
+            f"Using the shipcrawler OSINT framework, research the person \"{name}\".\n\n"
             f"{base_context}\n\n"
-            f"Focus only on vessel identity and registry data for this phase."
-        ),
-        1: (
-            f"Using the shipcrawler OSINT framework, execute Phase 1 (Target Identification) "
-            f"on the vessel \"{name}\".\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Search AIS sources (VesselFinder, MarineTraffic) for the vessel's current position, "
-            f"speed, course, destination, navigation status, and ETA.\n"
-            f"2. Find recent port calls (last 10-15) with dates, ports, and durations.\n"
-            f"3. Use CloakBrowser for anti-bot sites (VesselFinder, MarineTraffic).\n"
-            f"4. Present position data and port call history in a structured format.\n\n"
-            f"Focus on real-time tracking and recent activity."
-        ),
-        2: (
-            f"Using the shipcrawler OSINT framework, execute Phase 2 (Attack Surface Discovery) "
-            f"on the vessel \"{name}\".\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Use Shodan to search for the vessel name, MMSI, and IMO.\n"
-            f"2. Search for exposed maritime systems: Signal K servers (port 3000), "
-            f"VSAT terminals (Cobham SAILOR, KVH), NMEA-over-IP gateways, ECDIS, AIS receivers.\n"
-            f"3. Use Shodan host intelligence on any discovered IPs.\n"
-            f"4. Document all open ports, services, versions, and organizations.\n"
-            f"5. Even if zero results are found, report this explicitly (it's a finding).\n\n"
-            f"Focus on internet-facing systems and exposed maritime protocols."
-        ),
-        3: (
-            f"Using the shipcrawler OSINT framework, execute Phase 3 (Vulnerability Assessment) "
-            f"on the vessel \"{name}\".\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Compare discovered services against known CVEs for maritime equipment.\n"
-            f"2. Use Shodan exploit search for maritime-related exploits.\n"
-            f"3. Check for default credentials on common maritime equipment.\n"
-            f"4. Assess VSAT terminal security and Signal K server exposure.\n"
-            f"5. Document risk level per finding (CRITICAL, HIGH, MODERATE, LOW).\n\n"
-            f"Focus on vulnerability identification and risk classification."
-        ),
-        4: (
-            f"Using the shipcrawler OSINT framework, execute Phase 4 (Threat Intelligence) "
-            f"on the vessel \"{name}\".\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Search for maritime cyber incident reports related to this vessel, its operator, "
-            f"or its vessel type.\n"
-            f"2. Check for news articles, breach mentions, and dark web references.\n"
-            f"3. Cross-reference findings against known threat actor TTPs for maritime targets.\n"
-            f"4. Generate a risk assessment with geopolitical context if relevant.\n"
-            f"5. Recommend detection and monitoring strategies.\n\n"
-            f"Focus on threat context and risk positioning."
-        ),
-        5: (
-            f"Using the shipcrawler OSINT framework, execute Phase 5 (Analysis & Reporting) "
-            f"for the vessel \"{name}\".\n\n"
-            f"All previous phase findings consolidated:\n{previous_findings}\n\n"
-            f"Generate a COMPREHENSIVE FINAL REPORT with:\n\n"
-            f"1. **Vessel Identity**: name, IMO, MMSI, flag, type, dimensions, year built\n"
-            f"2. **Current Status**: position, speed, course, destination, navigation status\n"
-            f"3. **Port Calls**: recent port call history with dates\n"
-            f"4. **Shodan Attack Surface**: open ports, services, exposed systems\n"
-            f"5. **Vulnerability Assessment**: findings, risk levels, CVEs\n"
-            f"6. **Threat Intelligence**: risk assessment, geopolitical context\n"
-            f"7. **Operational Pattern Analysis**: home zone, route patterns\n"
-            f"8. **Confidence Assessment**: per-category (HIGH/MEDIUM/LOW)\n"
-            f"9. **Red Team Playbook**: 2-3 attack vectors designed for this vessel\n"
-            f"10. **Detection Rules**: Elastic SIEM rules, Zeek scripts, M-SOC runbook\n\n"
-            f"Format the report with clear markdown headings and structured data where possible. "
-            f"Be thorough and actionable."
-        ),
-    }
-
-    person_prompts = {
-        0: (
-            f"Using the shipcrawler OSINT framework, research the person \"{name}\". "
-            f"Execute the People OSINT methodology - Identity phase.\n\n"
-            f"{base_context}\n\n"
-            f"1. Search ORCID, Google Scholar, DBLP, institutional pages, LinkedIn, and GitHub.\n"
-            f"2. Find their full name, aliases, current position, employer, location, and education.\n"
-            f"3. Identify their ORCID ID, email addresses, and professional handles.\n"
-            f"4. Present findings with confidence levels per data point.\n\n"
-            f"Focus on basic identity and academic/professional affiliations."
-        ),
-        1: (
-            f"Using the shipcrawler OSINT framework, research the person \"{name}\". "
-            f"Execute Research Impact Analysis phase.\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Query ORCID works endpoint for publications with DOIs.\n"
-            f"2. Query DBLP for computer science publication record.\n"
-            f"3. Find Google Scholar profile with h-index, i10-index, total citations.\n"
-            f"4. Extract top-5 most cited publications.\n"
-            f"5. Identify co-authors for collaboration network.\n\n"
-            f"Focus on research metrics and publication record."
-        ),
-        2: (
-            f"Using the shipcrawler OSINT framework, research the person \"{name}\". "
-            f"Execute Social & Digital Footprint phase.\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Search for social media profiles (Twitter/X, LinkedIn, GitHub, ResearchGate).\n"
-            f"2. Check crt.sh for domains associated with their name.\n"
-            f"3. Search for news articles, conference talks, and public appearances.\n"
-            f"4. Check breach databases (Have I Been Pwned) for associated emails.\n"
-            f"5. Document all digital footprint findings.\n\n"
-            f"Focus on online presence and exposure."
-        ),
-        3: (
-            f"Using the shipcrawler OSINT framework, research the person \"{name}\". "
-            f"Execute Professional Network & Timeline phase.\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Map their career timeline: current positions, past positions, education.\n"
-            f"2. Identify geographic mobility across their career.\n"
-            f"3. Find collaboration network from co-authorship patterns.\n"
-            f"4. Document key career transitions and achievements.\n\n"
-            f"Focus on professional trajectory and network analysis."
-        ),
-        4: (
-            f"Using the shipcrawler OSINT framework, research the person \"{name}\". "
-            f"Execute Targeting Scenarios phase.\n\n"
-            f"Previous phase findings:\n{previous_findings}\n\n"
-            f"1. Design 2-3 attack vectors based on their digital footprint and profile.\n"
-            f"2. Each vector: name, difficulty, cost, detection probability, equipment, steps.\n"
-            f"3. Calculate exposure score (0-100) based on digital footprint.\n"
-            f"4. Generate risk tier (LOW/MEDIUM/HIGH) with justification.\n"
-            f"5. Provide recommendations to reduce exposure.\n\n"
-            f"Focus on red-team attack surface and risk analysis."
-        ),
-        5: (
-            f"Using the shipcrawler OSINT framework, generate the final report for \"{name}\".\n\n"
-            f"All previous phase findings:\n{previous_findings}\n\n"
-            f"Create a comprehensive people OSINT report with:\n"
-            f"1. Person identity and aliases summary\n"
-            f"2. Professional history with timeline\n"
-            f"3. Research impact (publications, citations, h-index, co-authors)\n"
-            f"4. Social media and digital footprint\n"
-            f"5. Affiliation timeline with geographic mobility\n"
-            f"6. Confidence assessment per category\n"
-            f"7. Targeting scenarios with vectors, difficulty, and detection points\n"
-            f"8. Exposure analysis with score and recommendations\n\n"
-            f"Format with clear markdown headings and structured data."
-        ),
-    }
-
-    prompts = person_prompts if mode == "person" else vessel_prompts
-    return prompts.get(phase_num, f"Research {name} using shipcrawler OSINT framework.")
-
-
-def run_hermes_phase(phase_num: int, phase_name: str, name: str, mode: str,
-                     context: str, previous_findings: str) -> str:
-    """Run a single Hermes agent phase, returning stdout."""
-    prompt = build_phase_prompt(phase_num, phase_name, name, mode, context, previous_findings)
-
-    cmd = [
-        HERMES_BIN, "chat",
-        "-q", prompt,
-        "--skills", "shipcrawler",
-        "-t", "web,terminal",
-        "-Q",
-        "--yolo",
-        "--max-turns", "40",
-        "--source", "tool",
-    ]
-
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=300,  # 5 min per phase max
-            env={**os.environ, "HOME": os.path.expanduser("~")},
+            f"Execute ALL phases of the people OSINT methodology:\n"
+            f"1. Identity & Academic Sources — search ORCID, Google Scholar, DBLP, LinkedIn, GitHub\n"
+            f"2. Research Impact Analysis — publications, citations, h-index, co-authors\n"
+            f"3. Social & Digital Footprint — social media, crt.sh, breach data\n"
+            f"4. Professional Network & Timeline — career history, education, geography\n"
+            f"5. Targeting Scenarios — 2-3 attack vectors with difficulty, cost, detection probability\n\n"
+            f"Generate a COMPREHENSIVE report with the following files saved to {REPORT_BASE}/<name>-report/:\n"
+            f"- analyst-report.md (full narrative with identity, career, research, digital footprint, confidence)\n"
+            f"- red-team-playbook.md (2-3 attack vectors with equipment, steps, detection points)\n"
+            f"- indicators-and-detection.md (Elastic rules, Zeek scripts, runbook)\n\n"
+            f"Be thorough — use multiple sources, cross-reference, and provide confidence levels per finding."
         )
-        output = result.stdout or ""
-        stderr = result.stderr or ""
-
-        if result.returncode != 0 and not output:
-            return f"[ERROR] Hermes exited {result.returncode}: {stderr[:500]}"
-
-        return output
-
-    except subprocess.TimeoutExpired:
-        return "[ERROR] Phase timed out after 5 minutes"
-    except Exception as e:
-        return f"[ERROR] {e}"
-
-
-def extract_summary(output: str, phase_num: int, mode: str) -> str:
-    """Extract a brief summary from phase output."""
-    if not output or output.startswith("[ERROR]"):
-        return output or "No output"
-
-    lines = output.strip().split("\n")
-    # Take first 2 non-empty lines as summary
-    meaningful = [l.strip() for l in lines if l.strip() and not l.startswith("#") and not l.startswith("```")]
-    summary_lines = meaningful[:3]
-    summary = " | ".join(summary_lines).strip()
-    return summary[:200] if summary else f"Phase {phase_num} completed"
-
-
-def run_phase(task_id: str, phase_num: int, phase_name: str, name: str,
-              mode: str, context: str, previous_findings: str = "") -> tuple:
-    """Run a phase and write progress events."""
-    wp.phase_start(task_id, phase_num, phase_name)
-    print(f"[worker {task_id}] Phase {phase_num}: {phase_name}...")
-    sys.stdout.flush()
-
-    start = time.time()
-
-    try:
-        output = run_hermes_phase(phase_num, phase_name, name, mode, context, previous_findings)
-
-        # Write output lines as progress
-        for line in output.split("\n"):
-            if line.strip():
-                wp.phase_output(task_id, phase_num, line.strip()[:500])
-
-        if output.startswith("[ERROR]"):
-            wp.phase_error(task_id, phase_num, phase_name, output)
-            print(f"[worker {task_id}] Phase {phase_num} ERROR: {output[:100]}")
-            return output, True  # return output, is_error=True
-
-        duration = time.time() - start
-        summary = extract_summary(output, phase_num, mode)
-        wp.phase_complete(task_id, phase_num, phase_name, duration, summary)
-        print(f"[worker {task_id}] Phase {phase_num} done ({duration:.1f}s)")
-        sys.stdout.flush()
-        return output, False
-
-    except Exception as e:
-        duration = time.time() - start
-        wp.phase_error(task_id, phase_num, phase_name, str(e))
-        print(f"[worker {task_id}] Phase {phase_num} EXCEPTION: {e}")
-        return str(e), True
+    else:
+        return (
+            f"Using the shipcrawler OSINT framework, research the vessel \"{name}\".\n\n"
+            f"{base_context}\n\n"
+            f"Execute ALL phases of the vessel OSINT methodology:\n"
+            f"Phase 0: Vessel Identity from Equasis — use equasis-cli (IMO lookup). "
+            f"If rate-limited, wait 30-60s and retry.\n"
+            f"Phase 1: Target Identification — AIS tracking, position, speed, destination, port calls "
+            f"from VesselFinder, MarineTraffic, MyShipTracking\n"
+            f"Phase 2: Attack Surface Discovery — Shodan search by name, MMSI, IMO, call sign; "
+            f"maritime protocol search (Signal K, VSAT, NMEA, ECDIS)\n"
+            f"Phase 3: Vulnerability Assessment — CVEs, misconfigurations, risk levels\n"
+            f"Phase 4: Threat Intelligence — maritime cyber incidents, news, geopolitical context\n"
+            f"Phase 5: Report Generation\n\n"
+            f"Generate a COMPREHENSIVE 3-file report:\n"
+            f"1. analyst-report.md — full narrative with vessel identity, current status, port calls, "
+            f"Shodan findings, vulnerability assessment, threat intel, operational pattern analysis, "
+            f"confidence assessment per category (HIGH/MEDIUM/LOW/SPECULATIVE)\n"
+            f"2. red-team-playbook.md — 2-3 attack vectors with name, difficulty, cost, detection prob, "
+            f"equipment list, numbered execution steps, detection points table\n"
+            f"3. indicators-and-detection.md — indicator table (ID, type, phase, priority, description), "
+            f"Elastic SIEM rules, Zeek scripts, M-SOC runbook\n\n"
+            f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
+            f"and report zero findings explicitly (it's a finding). Provide confidence levels."
+        )
 
 
-def process_task(task):
-    """Process a single task through all phases."""
-    task_id = task["task_id"]
-    name = task.get("name", "")
-    mode = task.get("mode", "vessel")
-    context = task.get("context", "")
+def worker_phase_output(task_id, phase, line, line_type="output"):
+    """Write a line of phase output with type classification."""
+    wp.write_event(task_id, "phase_output", phase=phase, line=line[:500], line_type=line_type)
+
+
+def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
+    """Run a single comprehensive Hermes shipcrawler session with real-time streaming."""
+    prompt = build_shipcrawler_prompt(name, mode, context)
 
     safe_name = sanitize_name(name)
     dir_name = clean_for_filename(safe_name) + "-report"
@@ -318,49 +104,115 @@ def process_task(task):
     report_dir.mkdir(parents=True, exist_ok=True)
 
     start_total = time.time()
+    output_lines = []
+    current_tool = ""
 
-    phases = PERSON_PHASES if mode == "person" else PHASES
-    all_outputs = []
-    previous_findings = ""
+    wp.phase_start(task_id, 0, "AI Agent Researching")
+    print(f"[worker {task_id}] Starting shipcrawler research on \"{name}\" ({mode})...")
+    sys.stdout.flush()
 
-    for phase_num, phase_name, _ in phases:
-        output, is_error = run_phase(
-            task_id, phase_num, phase_name, name, mode, context, previous_findings
+    cmd = [
+        HERMES_BIN, "chat",
+        "-q", prompt,
+        "--skills", "shipcrawler",
+        "-t", "web,terminal",
+        "--yolo",
+        "--max-turns", "60",
+        "--source", "tool",
+    ]
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            env={**os.environ, "HOME": os.path.expanduser("~")},
         )
 
-        # Save phase output
-        phase_file = report_dir / f"phase-{phase_num}-{clean_for_filename(phase_name)}.md"
-        phase_file.write_text(output[:50000])
+        # Read stdout line by line in real-time
+        for line in iter(proc.stdout.readline, ""):
+            stripped = line.rstrip("\n\r")
+            output_lines.append(line)
 
-        # Accumulate for next phase context (use last 3000 chars to stay concise)
-        all_outputs.append(f"## Phase {phase_num}: {phase_name}\n\n{output[:5000]}")
-        # Keep previous findings as the concatenation of all phase outputs
-        # but limit total context to avoid max-token issues
-        combined = "\n\n".join(all_outputs)
-        previous_findings = combined[-8000:] if len(combined) > 8000 else combined
+            if not stripped:
+                continue
 
-    # Compile final report
-    wp.phase_start(task_id, 99, "Compiling Final Report")
+            # Classify the line
+            if "● [Tool:" in stripped:
+                # Tool call start — extract tool name
+                tool_match = re.search(r"● \[Tool:\s*(\w+)\]", stripped)
+                current_tool = tool_match.group(1).lower() if tool_match else "agent"
+                worker_phase_output(task_id, 0, stripped, "tool_start")
+            elif "● [Error:" in stripped:
+                worker_phase_output(task_id, 0, stripped, "tool_error")
+            elif stripped.startswith("  ") and current_tool:
+                # Indented line after a tool call — detail line
+                detail = stripped.strip()
+                if detail and not detail.startswith("─") and not detail.startswith("│"):
+                    worker_phase_output(task_id, 0, detail[:300], "tool_detail")
+            elif stripped.startswith("┌─") or stripped.startswith("│") or stripped.startswith("└─") or stripped.startswith("─"):
+                # Thinking block markers — skip box-drawing chars
+                text = stripped.replace("│", "").replace("┌─", "").replace("└─", "").replace("─", "").strip()
+                if text:
+                    worker_phase_output(task_id, 0, text[:300], "thinking")
+            else:
+                # Regular output
+                worker_phase_output(task_id, 0, stripped[:300], "output")
 
-    full_report = "\n\n---\n\n".join(all_outputs)
-    report_file = report_dir / "analyst-report.md"
-    report_file.write_text(full_report[:100000])
+        proc.stdout.close()
+        proc.wait(timeout=30)
+        stderr = proc.stderr.read() if proc.stderr else ""
+        exit_code = proc.returncode
+
+    except subprocess.TimeoutExpired:
+        stderr = "TIMEOUT: Shipcrawler took longer than 15 minutes"
+        exit_code = -1
+    except Exception as e:
+        stderr = f"EXCEPTION: {e}"
+        exit_code = -2
+
+    output = "".join(output_lines)
+
+    # Write the Hermes output as the analyst report
+    analyst_path = report_dir / "analyst-report.md"
+    if output.strip():
+        analyst_path.write_text(output[:100000])
+    else:
+        analyst_path.write_text(f"# {name} — OSINT Report\n\nAI agent returned no output.\n\n{stderr}")
+
+    duration = time.time() - start_total
+    summary = f"Research complete ({duration:.0f}s, exit={exit_code})"
+
+    if exit_code != 0 and not output.strip():
+        wp.phase_error(task_id, 0, "AI Agent Researching", f"Exit {exit_code}: {stderr[:200]}")
+        print(f"[worker {task_id}] ERROR exit={exit_code}: {stderr[:100]}")
+    else:
+        wp.phase_complete(task_id, 0, "AI Agent Researching", duration, summary)
+        print(f"[worker {task_id}] Research done ({duration:.1f}s)")
+    sys.stdout.flush()
+
+    # Check what other files the agent may have written
+    md_files = sorted(report_dir.glob("*.md"))
+    if analyst_path not in md_files:
+        md_files.insert(0, analyst_path)
 
     total_duration = time.time() - start_total
-
-    md_files = sorted(report_dir.glob("*.md"))
     wp.report_complete(task_id, str(report_dir), total_duration, [f.name for f in md_files])
 
-    print(f"[worker {task_id}] ALL PHASES COMPLETE ({total_duration:.1f}s total)")
+    print(f"[worker {task_id}] REPORT COMPLETE ({total_duration:.1f}s total)")
+    print(f"[worker {task_id}]   Files: {[f.name for f in md_files]}")
     sys.stdout.flush()
 
     return {
         "task_id": task_id,
         "mode": mode,
-        "status": "done",
+        "status": "done" if exit_code == 0 or output.strip() else "error",
         "report_dir": str(report_dir),
         "report_files": [str(f) for f in md_files],
         "duration_total": round(total_duration, 1),
+        "hermes_exit": exit_code,
     }
 
 
@@ -390,7 +242,7 @@ def process_queue():
     print(f"[worker] Processing task {task['task_id']}: {task.get('name', '?')} ({task.get('mode', '?')})")
     sys.stdout.flush()
 
-    result = process_task(task)
+    result = run_shipcrawler(task["task_id"], task.get("name", ""), task.get("mode", "vessel"), task.get("context", ""))
 
     done_path = DONE_DIR / task_path.name
     with open(done_path, "w") as f:

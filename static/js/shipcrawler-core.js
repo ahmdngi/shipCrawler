@@ -58,6 +58,24 @@ const ShipcrawlerCore = (() => {
     var sidebarOpen = localStorage.getItem('shipcrawler-sidebar-open') !== 'false';
     if (!sidebarOpen) { document.getElementById('sidebar').classList.add('closed'); document.body.classList.add('sidebar-closed'); }
     loadHistory();
+
+    // Auto-load the most recent search from history
+    var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
+    if (tasks.length > 0) {
+      loadFromHistory(tasks[0].task_id);
+    }
+
+    // Live timer tick every second
+    setInterval(function() {
+      var timers = document.querySelectorAll('.phase-timer');
+      for (var i = 0; i < timers.length; i++) {
+        var t = timers[i];
+        var elapsed = Math.floor((Date.now() - parseInt(t.dataset.start)) / 1000);
+        var mins = Math.floor(elapsed / 60);
+        var secs = elapsed % 60;
+        t.textContent = mins > 0 ? ' ' + mins + 'm ' + secs + 's' : ' ' + secs + 's';
+      }
+    }, 1000);
   }
 
   // ── Terminal Feed ──────────────────────────────────────────
@@ -93,7 +111,15 @@ const ShipcrawlerCore = (() => {
       spinner.className = 'spinner';
       spinner.textContent = '⏳';
       content.appendChild(spinner);
-      content.appendChild(document.createTextNode(' Running...'));
+      content.appendChild(document.createTextNode(' '));
+      const nameSpan = document.createElement('strong');
+      nameSpan.textContent = phaseName;
+      content.appendChild(nameSpan);
+      const timer = document.createElement('span');
+      timer.className = 'phase-timer';
+      timer.dataset.start = Date.now();
+      timer.textContent = ' 0s';
+      content.appendChild(timer);
     } else if (type === 'complete') {
       content.innerHTML = '✅ <strong>' + escapeHtml(phaseName) + '</strong> — ' + escapeHtml((data.summary || 'Complete').substring(0, 150)) + ' <span class="phase-duration">(' + (data.duration || '?') + 's)</span>';
     } else if (type === 'error') {
@@ -132,13 +158,51 @@ const ShipcrawlerCore = (() => {
   function onPhaseStart(data) { addPhaseLine(data, 'start'); phaseCount++; }
   function onPhaseOutput(data) {
     var line = (data.line || '').trim();
-    if (line && line.length > 5) addProgressLine(data.phase, line.substring(0, 200));
+    if (!line || line.length <= 3) return;
+    var type = data.line_type || 'output';
+    if (!els.feed) return;
+
+    var lineEl = document.createElement('div');
+    lineEl.className = 'phase-line phase-' + type;
+
+    if (type === 'tool_start') {
+      // Extract tool name from the line
+      var tool = 'AGENT';
+      var m = line.match(/\[Tool:\s*(\w+)\]/);
+      if (m) tool = m[1].toUpperCase();
+      var toolColor = toolColorMap(tool);
+      lineEl.innerHTML = '<span class="phase-badge" style="background-color:' + toolColor + '">' + tool + '</span>' +
+        '<span class="phase-content">' + escapeHtml(line) + '</span>';
+    } else if (type === 'tool_error') {
+      lineEl.innerHTML = '<span class="phase-badge" style="background-color:#e63946">ERROR</span><span class="phase-content" style="color:var(--color-accent);">' + escapeHtml(line) + '</span>';
+    } else if (type === 'tool_detail') {
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-2);font-size:0.75rem;">' + escapeHtml(line) + '</span>';
+    } else if (type === 'thinking') {
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-3);font-size:0.72rem;font-style:italic;">' + escapeHtml(line) + '</span>';
+    } else {
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink);font-size:0.78rem;">' + escapeHtml(line) + '</span>';
+    }
+
+    els.feed.appendChild(lineEl);
+    els.feed.scrollTop = els.feed.scrollHeight;
+  }
+
+  function toolColorMap(tool) {
+    var map = {
+      'WEB_SEARCH': '#06d6a0', 'WEB_EXTRACT': '#06d6a0',
+      'EQUASIS': '#4895ef', 'EQUASIS-CLI': '#4895ef',
+      'SHODAN': '#f72585',
+      'BROWSER_NAVIGATE': '#9b5de5', 'BROWSER': '#9b5de5',
+      'BASH': '#ff9e00', 'TERMINAL': '#ff9e00',
+      'READ': '#00bbf9', 'WRITE': '#00bbf9',
+    };
+    return map[tool] || '#6c8a94';
   }
 
   function onPhaseComplete(data) {
     if (!els.feed) return;
-    var lines = els.feed.querySelectorAll('.phase-line');
-    var lastStart = lines[lines.length - 1];
+    var starts = els.feed.querySelectorAll('.phase-line.phase-start');
+    var lastStart = starts.length > 0 ? starts[starts.length - 1] : null;
     if (lastStart && lastStart.classList.contains('phase-start')) {
       var badge = lastStart.querySelector('.phase-badge');
       var color = badge ? badge.style.backgroundColor : '';
@@ -299,7 +363,7 @@ const ShipcrawlerCore = (() => {
       switchTab('overview', true);
     } else {
       document.getElementById('person-panels').style.display = 'none';
-      if (els.modeLabel) els.modeLabel.textContent = 'Mode: Vessel OSINT (Phase Agent)';
+      if (els.modeLabel) els.modeLabel.textContent = 'Mode: Vessel OSINT (AI Agent)';
       renderVesselReport(data);
       switchTab('overview', false);
     }
@@ -435,88 +499,68 @@ const ShipcrawlerCore = (() => {
     var isClosed = sb.classList.toggle('closed');
     document.body.classList.toggle('sidebar-closed', isClosed);
     localStorage.setItem('shipcrawler-sidebar-open', String(!isClosed));
-    // Update toggle button icon
     document.getElementById('sidebar-toggle').textContent = isClosed ? '▶' : '◀';
   }
 
-  function saveToHistory(data) {
-    var name = data.name || 'Unknown';
-    var mode = data.mode || 'vessel';
-    var ts = data.timestamp || Date.now();
+  function saveToHistory(entry) {
     var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
-
-    // Don't duplicate
     for (var i = 0; i < tasks.length; i++) {
-      if (tasks[i].task_id === data.task_id) {
-        tasks[i] = data; // update
-        localStorage.setItem('shipcrawler-history', JSON.stringify(tasks));
-        renderHistory();
-        return;
-      }
+      if (tasks[i].task_id === entry.task_id) { tasks[i] = entry; localStorage.setItem('shipcrawler-history', JSON.stringify(tasks)); renderHistory(); return; }
     }
-
-    tasks.unshift(data); // newest first
-    // Keep max 50 entries (each has full report data)
+    tasks.unshift(entry);
     if (tasks.length > 50) tasks.pop();
     localStorage.setItem('shipcrawler-history', JSON.stringify(tasks));
     renderHistory();
   }
 
-  function loadHistory() {
-    renderHistory();
-  }
+  function loadHistory() { renderHistory(); }
 
   function renderHistory() {
     var list = document.getElementById('sidebar-list');
     if (!list) return;
     var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
-    if (tasks.length === 0) {
-      list.innerHTML = '<div class="sidebar-empty">No searches yet</div>';
-      return;
-    }
+    if (tasks.length === 0) { list.innerHTML = '<div class="sidebar-empty">No searches yet</div>'; return; }
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
       var t = tasks[i];
-      var d = new Date(t.timestamp || t.ts || Date.now());
-      var timeStr = d.toLocaleString();
-      var modeIcon = t.mode === 'person' ? '👤' : '🚢';
-      var activeClass = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
-      html += '<div class="sidebar-item' + activeClass + '" data-task-id="' + t.task_id + '">' +
-        '<div class="sidebar-item-name">' + modeIcon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
-        '<div class="sidebar-item-meta"><span>' + modeIcon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div>' +
-        '</div>';
+      var timeStr = new Date(t.timestamp || Date.now()).toLocaleString();
+      var icon = t.mode === 'person' ? '👤' : '🚢';
+      var active = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
+      html += '<div class="sidebar-item' + active + '" data-task-id="' + t.task_id + '">' +
+        '<div class="sidebar-item-name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
+        '<div class="sidebar-item-meta"><span>' + icon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div></div>';
     }
     list.innerHTML = html;
-
-    // Click handlers
     var items = list.querySelectorAll('.sidebar-item');
     for (var i = 0; i < items.length; i++) {
-      items[i].addEventListener('click', function() {
-        var taskId = this.dataset.taskId;
-        loadFromHistory(taskId);
-      });
+      items[i].addEventListener('click', function() { loadFromHistory(this.dataset.taskId); });
     }
   }
 
   function loadFromHistory(taskId) {
+    var entry = null;
     var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
     for (var i = 0; i < tasks.length; i++) {
-      if (tasks[i].task_id === taskId) {
-        var data = tasks[i].report_data;
-        if (data) {
-          currentReport = data;
-          if (els.reportEl) els.reportEl.classList.add('visible');
-          if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
-          displayReport(data);
-          // Highlight in sidebar
-          renderHistory();
-        } else {
-          // Try fetching from API
-          loadReport(taskId);
-        }
-        return;
-      }
+      if (tasks[i].task_id === taskId) { entry = tasks[i]; break; }
     }
+
+    // Try API with task_id first, fall back to by-name with the saved name
+    var url = '/api/report/' + taskId;
+    if (entry && entry.name) url = '/api/report/by-name/' + encodeURIComponent(entry.name);
+
+    fetch(url)
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data) {
+        currentReport = data;
+        if (els.reportEl) els.reportEl.classList.add('visible');
+        if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
+        displayReport(data);
+        renderHistory();
+        populateRightPanel(data);
+      })
+      .catch(function(err) {
+        onError('Could not load previous report: ' + err.message);
+      });
   }
 
   // Override loadReport to also save to history
@@ -526,28 +570,65 @@ const ShipcrawlerCore = (() => {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         currentReport = data;
-        // Save to history
-        saveToHistory({
-          task_id: taskId,
-          name: _currentQuery || (document.getElementById('search-input') ? document.getElementById('search-input').value : taskId),
-          mode: currentMode,
-          timestamp: Date.now(),
-          report_data: data,
-        });
+        saveToHistory({ task_id: taskId, name: _currentQuery || taskId, mode: currentMode, timestamp: Date.now() });
         if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
         if (els.input) els.input.value = '';
-        setTimeout(function() {
-          displayReport(data);
-        }, 300);
+        setTimeout(function() { displayReport(data); populateRightPanel(data); }, 300);
       })
-      .catch(function(err) {
-        onError('Failed to load report: ' + err.message);
-      });
+      .catch(function(err) { onError('Failed to load report: ' + err.message); });
   };
+
+  // ── Right Panel ───────────────────────────────────────────
+  function toggleRightPanel() {
+    var rp = document.getElementById('right-panel');
+    var isClosed = rp.classList.toggle('closed');
+    document.body.classList.toggle('right-panel-closed', isClosed);
+    localStorage.setItem('shipcrawler-right-panel-open', String(!isClosed));
+    document.getElementById('right-panel-toggle').textContent = isClosed ? '▶' : '◀';
+  }
+
+  function populateRightPanel(data) {
+    var list = document.getElementById('right-panel-list');
+    if (!list || !data.phase_contents) { if (list) list.innerHTML = '<div class="right-panel-empty">No phase files</div>'; return; }
+    var names = Object.keys(data.phase_contents);
+    if (names.length === 0) { list.innerHTML = '<div class="right-panel-empty">No phase files</div>'; return; }
+    var html = '';
+    for (var i = 0; i < names.length; i++) {
+      var label = names[i].replace(/^phase-\d+-/, '').replace(/-/g, ' ').replace(/—-/g, '— ').substring(0, 30);
+      html += '<div class="right-panel-item" data-phase="' + names[i] + '">📄 ' + label + '</div>';
+    }
+    list.innerHTML = html;
+    var items = list.querySelectorAll('.right-panel-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].addEventListener('click', function() {
+        var key = this.dataset.phase;
+        var content = data.phase_contents[key];
+        // Remove active from others
+        list.querySelectorAll('.right-panel-item').forEach(function(el) { el.classList.remove('active'); });
+        this.classList.add('active');
+        // Show in a modal overlay
+        showPhaseModal(key, content);
+      });
+    }
+  }
+
+  function showPhaseModal(name, content) {
+    var existing = document.getElementById('phase-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'phase-modal';
+    modal.className = 'modal-overlay visible';
+    modal.style.cssText = 'z-index:300;';
+    modal.innerHTML = '<div class="modal-content" style="max-width:800px;max-height:85vh;">' +
+      '<button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>' +
+      '<h3 style="color:var(--color-accent);margin-bottom:0.5rem;">📄 ' + escapeHtml(name) + '</h3>' +
+      '<pre style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;font-size:0.75rem;line-height:1.4;color:var(--color-ink);white-space:pre-wrap;word-break:break-word;">' + escapeHtml(content) + '</pre></div>';
+    document.body.appendChild(modal);
+  }
 
   return {
     init: init, doSearch: doSearch, exportReport: exportReport,
-    toggleSidebar: toggleSidebar,
+    toggleSidebar: toggleSidebar, toggleRightPanel: toggleRightPanel,
     getCurrentMode: function() { return currentMode; },
     getCurrentReport: function() { return currentReport; },
     escapeHtml: escapeHtml,
