@@ -1,0 +1,13 @@
+{"step": "queue", "detail": "Worker picked up vessel task", "source": "orchestrator", "timestamp": "2026-06-14T12:49:53.758729+00:00"}
+{"step": "queue", "detail": "Starting investigation of \"271000744\"...", "source": "orchestrator", "timestamp": "2026-06-14T12:49:53.768933+00:00"}
+{"step": "equasis", "detail": "Querying Equasis registry for \"271000744\"...", "source": "equasis-cli", "timestamp": "2026-06-14T12:49:53.773350+00:00"}
+{"step": "equasis", "detail": "Skipped \u2014 Equasis requires an IMO number", "source": "equasis-cli", "timestamp": "2026-06-14T12:49:53.778682+00:00"}
+{"step": "ais", "detail": "Querying VesselFinder for AIS tracking data...", "source": "vesselfinder", "timestamp": "2026-06-14T12:49:53.783089+00:00"}
+{"step": "ais", "detail": "Failed: exit code 1", "source": "ais", "timestamp": "2026-06-14T12:49:53.835410+00:00"}
+{"step": "ais", "detail": "AIS data unavailable \u2014 vessel may not be broadcasting", "source": "vesselfinder", "timestamp": "2026-06-14T12:49:53.840663+00:00"}
+{"step": "shodan", "detail": "Scanning Shodan and web for \"271000744\"...", "source": "shodan-api", "timestamp": "2026-06-14T12:49:53.844962+00:00"}
+{"step": "shodan", "detail": "Found 0 Shodan hits, 0 web OSINT mentions", "source": "shodan-api", "timestamp": "2026-06-14T12:50:12.632126+00:00", "found": {"total_hits": 0, "web_mentions": 0}}
+{"step": "analysis", "detail": "Merging all agent results and generating report...", "source": "orchestrator", "timestamp": "2026-06-14T12:50:12.638049+00:00"}
+{"step": "analysis", "detail": "Report generated: 3 files", "source": "orchestrator", "timestamp": "2026-06-14T12:50:12.643882+00:00", "found": {"report_dir": "/root/hermes-vault/osint-reports/271000744-report"}}
+{"step": "report", "detail": "Investigation complete!", "source": "orchestrator", "timestamp": "2026-06-14T12:50:12.648348+00:00", "found": {"report_dir": "/root/hermes-vault/osint-reports/271000744-report", "files": ["analyst-report.md", "indicators-and-detection.md", "red-team-playbook.md"]}}
+{"step": "done", "detail": "Task completed in vessel mode", "source": "orchestrator", "timestamp": "2026-06-14T12:50:12.652502+00:00"}

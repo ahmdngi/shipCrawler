@@ -1,0 +1,12 @@
+{
+  "task_id": "7cba35a1",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/hermes-vault/osint-reports/chuang-li-imo-9815991-report",
+  "report_files": [
+    "/root/hermes-vault/osint-reports/chuang-li-imo-9815991-report/analyst-report.md",
+    "/root/hermes-vault/osint-reports/chuang-li-imo-9815991-report/indicators-and-detection.md",
+    "/root/hermes-vault/osint-reports/chuang-li-imo-9815991-report/red-team-playbook.md"
+  ],
+  "hermes_exit": 0
+}

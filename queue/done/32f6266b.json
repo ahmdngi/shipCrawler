@@ -1,0 +1,12 @@
+{
+  "task_id": "32f6266b",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/hermes-vault/osint-reports/e2e-test-report",
+  "report_files": [
+    "/root/hermes-vault/osint-reports/e2e-test-report/analyst-report.md",
+    "/root/hermes-vault/osint-reports/e2e-test-report/indicators-and-detection.md",
+    "/root/hermes-vault/osint-reports/e2e-test-report/red-team-playbook.md"
+  ],
+  "hermes_exit": 0
+}

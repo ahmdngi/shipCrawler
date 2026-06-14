@@ -23,8 +23,9 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    print(f"  🚢 Shipcrawler OSINT Dashboard v4 (Hermes-powered)")
+    print(f"  🚢 Shipcrawler OSINT Dashboard v5 (Phase Agent)")
     print(f"  🌐 http://{TAILSCALE_IP}:{PORT}")
     print(f"  🔒 Binding to Tailscale IP: {TAILSCALE_IP}")
     print()
-    app.run(host=TAILSCALE_IP, port=PORT, debug=False)
+    # threaded=True so SSE long-poll doesn't block other connections
+    app.run(host=TAILSCALE_IP, port=PORT, debug=False, threaded=True)

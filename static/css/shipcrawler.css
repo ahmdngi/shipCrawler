@@ -11,6 +11,18 @@
   --color-accent-ink: oklch(96%  0.020 25);
   --color-green:      oklch(82%  0.210 145);
   --color-gold:       oklch(73%  0.140 75);
+
+  /* Step badge colors */
+  --color-badge-equasis:  oklch(55% 0.160 250);
+  --color-badge-ais:      oklch(60% 0.140 190);
+  --color-badge-shodan:   oklch(65% 0.170 60);
+  --color-badge-web:      oklch(60% 0.170 140);
+  --color-badge-report:   oklch(55% 0.160 290);
+  --color-badge-queue:    oklch(55% 0.060 260);
+  --color-badge-analysis: oklch(65% 0.120 310);
+  --color-badge-error:    oklch(58% 0.165 25);
+  --color-badge-hermes:   oklch(55% 0.100 220);
+  --color-badge-done:     oklch(55% 0.180 145);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -128,35 +140,99 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
 .search-container button:active { transform:scale(0.97); }
 .search-container button:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* Search history dropdown */
-.search-history {
-  position:absolute; top:100%; left:0; right:0; z-index:50;
-  background:var(--color-paper-2); border:1px solid var(--color-ink-3);
-  border-radius:0 0 6px 6px; max-height:200px; overflow-y:auto;
-  display:none;
+/* ─── Phase Terminal Feed ────────────────────────────────── */
+#terminal-feed {
+  position:relative; z-index:1;
+  width:100%; max-width:720px; margin:1.5rem auto;
+  background: var(--color-paper-3);
+  border:1px solid var(--color-ink-3);
+  border-radius:8px; overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4);
 }
-.search-history.visible { display:block; }
-.search-history-item {
-  padding:0.5rem 1rem; font-size:0.82rem; color:var(--color-ink-2);
-  cursor:pointer; border-bottom:1px solid rgba(53,90,102,0.15);
-  display:flex; justify-content:space-between;
+.feed-header {
+  display:flex; align-items:center; gap:0.75rem;
+  padding:0.6rem 1rem;
+  background:rgba(0,0,0,0.3);
+  border-bottom:1px solid var(--color-ink-3);
+  font-size:0.75rem;
 }
-.search-history-item:hover { background:var(--color-paper-3); color:var(--color-ink); }
-.search-history-item .mode-tag {
-  font-size:0.65rem; color:var(--color-ink-3); text-transform:uppercase;
+.feed-title {
+  color:var(--color-green); text-transform:uppercase;
+  letter-spacing:0.08em; font-weight:bold;
+}
+.feed-subtitle {
+  flex:1; color:var(--color-ink-2);
+}
+.feed-body {
+  padding:0.6rem 1rem;
+  max-height:480px; overflow-y:auto;
+  font-size:0.82rem; line-height:1.5;
+  scroll-behavior:smooth;
+}
+.feed-body::-webkit-scrollbar { width:4px; }
+.feed-body::-webkit-scrollbar-track { background:transparent; }
+.feed-body::-webkit-scrollbar-thumb { background:var(--color-ink-3); border-radius:2px; }
+
+/* Phase lines */
+.phase-line {
+  padding:0.3rem 0;
+  display:flex; align-items:flex-start; gap:0.5rem;
+  opacity:0; animation:phase-appear 0.3s ease forwards;
+}
+@keyframes phase-appear {
+  from { opacity:0; transform:translateX(-8px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.phase-badge {
+  display:inline-block; padding:0.1rem 0.5rem;
+  border-radius:3px; font-size:0.62rem; font-weight:bold;
+  text-transform:uppercase; letter-spacing:0.04em;
+  white-space:nowrap; flex-shrink:0; min-width:3rem; text-align:center;
+  line-height:1.4; color:#fff;
+}
+.phase-content {
+  color:var(--color-ink-2);
+  flex:1; font-size:0.82rem;
+}
+.phase-duration {
+  color:var(--color-ink-3); font-size:0.72rem;
+}
+.phase-complete .phase-content { color:var(--color-ink); }
+.phase-error .phase-content { color:var(--color-accent); }
+.phase-progress { padding-left:0.5rem; }
+.phase-indent { width:0; flex-shrink:0; }
+.spinner {
+  display:inline-block;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
 }
 
-/* ─── Terminal Loader ──────────────────────────────────────── */
-.terminal-loader {
-  display:none; width:100%; max-width:640px; margin:2rem auto 0;
-  background:var(--color-paper-3); border:1px solid var(--color-ink-3);
-  border-radius:8px; padding:1rem 1.2rem; font-size:0.85rem; text-align:left;
+/* ─── Final Summary Bar ─────────────────────────────────── */
+.final-summary {
+  position:relative; z-index:1;
+  max-width:720px; margin:1.5rem auto;
+  display:flex; justify-content:center; gap:2rem;
+  flex-wrap:wrap;
+  padding:1rem 1.5rem;
+  background:var(--color-paper-3);
+  border:1px solid var(--color-ink-3);
+  border-radius:8px;
+  animation:fadeInUp 0.5s ease;
 }
-.terminal-loader .line { padding:0.2rem 0; opacity:0; transition:opacity 0.3s; }
-.terminal-loader .line.visible { opacity:1; }
-.terminal-loader .line.done { color:var(--color-green); }
-.terminal-loader .line.active { color:var(--color-gold); }
-.terminal-loader .line.error { color:var(--color-accent); }
+.summary-stat {
+  text-align:center;
+  display:flex; flex-direction:column; align-items:center;
+}
+.stat-value {
+  font-size:1.4rem; font-weight:bold; color:var(--color-green);
+}
+.stat-label {
+  font-size:0.72rem; color:var(--color-ink-2);
+  text-transform:uppercase; letter-spacing:0.05em;
+}
 
 /* ─── Report ────────────────────────────────────────────────── */
 .report-container { display:none; position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:0 1.5rem 4rem; }
@@ -380,10 +456,15 @@ footer {
 
 /* ─── Animations ────────────────────────────────────────────── */
 @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scaleIn {  from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+@keyframes slideUp {  from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 
 /* ─── Responsive ────────────────────────────────────────────── */
 @media (max-width:600px) {
   nav { padding:0.6rem 1rem; }
   .card-grid { grid-template-columns:1fr 1fr; }
   .search-container input { min-width:180px; }
+  .feed-body { max-height:320px; }
+  .phase-line { flex-wrap:wrap; gap:0.2rem; }
+  .phase-badge { min-width:2.5rem; }
 }

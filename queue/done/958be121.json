@@ -1,0 +1,12 @@
+{
+  "task_id": "958be121",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/hermes-vault/osint-reports/sse-test-report",
+  "report_files": [
+    "/root/hermes-vault/osint-reports/sse-test-report/analyst-report.md",
+    "/root/hermes-vault/osint-reports/sse-test-report/indicators-and-detection.md",
+    "/root/hermes-vault/osint-reports/sse-test-report/red-team-playbook.md"
+  ],
+  "hermes_exit": 0
+}

@@ -1,4 +1,4 @@
-/* Shipcrawler UI — All card renderers */
+/* Shipcrawler UI — All card renderers, terminal feed helpers */
 
 const ShipcrawlerUI = (() => {
   function esc(s) {
@@ -12,7 +12,14 @@ const ShipcrawlerUI = (() => {
     const mode = ShipcrawlerCore.getCurrentMode();
     const cards = document.querySelectorAll(mode === 'vessel'
       ? '#vessel-cards .card' : '#person-cards .card');
-    cards.forEach((card, i) => setTimeout(() => card.classList.add('visible'), i * 150));
+    cards.forEach((card, i) => {
+      // Stagger: each card enters 120ms after the previous one
+      setTimeout(() => {
+        card.classList.add('visible');
+        // Subtle scale-in effect
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      }, i * 120);
+    });
   }
 
   // ── Grid Renderers ─────────────────────────────────────────
@@ -73,7 +80,7 @@ const ShipcrawlerUI = (() => {
     const summary = data.summary || '';
     const sumEl = document.createElement('div');
     sumEl.className = 'shodan-summary';
-    sumEl.textContent = `📡 ${summary}`;
+    sumEl.textContent = '📡 ' + summary;
     c.appendChild(sumEl);
     if (results.length === 0) {
       const e = document.createElement('div');
@@ -113,7 +120,7 @@ const ShipcrawlerUI = (() => {
         <div class="meta">
           <span>⚙️ Difficulty: <strong>${esc(vec.difficulty)}</strong></span>
           <span>💰 Cost: <strong>${esc(vec.cost)}</strong></span>
-          <span>👁️ Detection: <strong>${esc(vec.detection_prob)}</strong></span>
+          <span>👁‍🗨️ Detection: <strong>${esc(vec.detection_prob)}</strong></span>
         </div>`;
       if (vec.equipment && vec.equipment.length) {
         vc.innerHTML += `<div class="section-label">Equipment</div><ul>${vec.equipment.map(e => `<li>${esc(e)}</li>`).join('')}</ul>`;
@@ -231,17 +238,17 @@ const ShipcrawlerUI = (() => {
       c.innerHTML = '<div style="color:var(--color-ink-2);font-size:0.85rem;">No social media profiles identified.</div>';
       return;
     }
-    const div = document.createElement('div');
-    div.className = 'person-social';
+    const d = document.createElement('div');
+    d.className = 'person-social';
     for (const s of social) {
       const a = document.createElement('a');
       a.href = s.url || '#';
       a.target = '_blank';
       a.innerHTML = `${esc(s.platform)} ${s.handle ? '— ' + esc(s.handle) : ''}`;
       a.title = s.url || '';
-      div.appendChild(a);
+      d.appendChild(a);
     }
-    c.appendChild(div);
+    c.appendChild(d);
     const list = document.createElement('div');
     list.style.cssText = 'margin-top:0.75rem;font-size:0.78rem;';
     for (const s of social) {
@@ -317,7 +324,6 @@ const ShipcrawlerUI = (() => {
     grid.className = 'card-grid';
     grid.innerHTML += `<div class="card-field"><span class="label">Overall</span><span class="risk-badge risk-${overall}">${overall}</span></div>`;
     c.appendChild(grid);
-
     const table = document.createElement('table');
     table.className = 'indicator-table';
     table.innerHTML = '<thead><tr><th>Category</th><th>Confidence</th></tr></thead><tbody>';
@@ -346,7 +352,6 @@ const ShipcrawlerUI = (() => {
     for (const pos of currents) {
       c.innerHTML += `<div class="detail-card"><div class="dc-title">${esc(pos.role)} @ ${esc(pos.organization)}</div><div class="dc-meta">${esc(pos.period || 'Present')} ${pos.department ? '· ' + esc(pos.department) : ''}</div></div>`;
     }
-
     const pasts = timeline.past_positions || [];
     if (pasts.length) {
       c.innerHTML += `<div class="section-label" style="color:var(--color-ink-2);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin:1rem 0 0.5rem;">Past Positions</div>`;
@@ -354,14 +359,12 @@ const ShipcrawlerUI = (() => {
         c.innerHTML += `<div class="detail-card"><div class="dc-title">${esc(pos.role)} @ ${esc(pos.organization)}</div><div class="dc-meta">${esc(pos.period)} ${pos.department ? '· ' + esc(pos.department) : ''}</div></div>`;
       }
     }
-
     if (timeline.education && timeline.education.length) {
       c.innerHTML += `<div class="section-label" style="color:var(--color-ink-2);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin:1rem 0 0.5rem;">Education</div>`;
       for (const edu of timeline.education) {
         c.innerHTML += `<div class="detail-card" style="font-size:0.82rem;">${esc(edu)}</div>`;
       }
     }
-
     if (timeline.geographic_summary) {
       c.innerHTML += `<div style="margin-top:0.75rem;font-size:0.78rem;color:var(--color-ink-2);">📍 Geographic regions: ${esc(timeline.geographic_summary)}</div>`;
     }
@@ -377,18 +380,15 @@ const ShipcrawlerUI = (() => {
       return;
     }
     const cm = impact.citation_metrics || {};
-    // Metrics grid
     const grid = document.createElement('div');
     grid.className = 'card-grid';
-    grid.innerHTML = `<div class="card-field"><span class="label">Total Publications</span><span class="value">${impact.total_publications}</span></div>`;
+    grid.innerHTML += `<div class="card-field"><span class="label">Total Publications</span><span class="value">${impact.total_publications}</span></div>`;
     if (cm.total_citations) grid.innerHTML += `<div class="card-field"><span class="label">Total Citations</span><span class="value" style="color:var(--color-green)">${cm.total_citations.toLocaleString()}</span></div>`;
     if (cm.h_index) grid.innerHTML += `<div class="card-field"><span class="label">h-index</span><span class="value" style="color:var(--color-green)">${cm.h_index}</span></div>`;
     if (cm.i10_index) grid.innerHTML += `<div class="card-field"><span class="label">i10-index</span><span class="value" style="color:var(--color-gold)">${cm.i10_index}</span></div>`;
     if (impact.career_span_years) grid.innerHTML += `<div class="card-field"><span class="label">Career Span</span><span class="value">${impact.career_span_years} years (${impact.first_year}–${impact.last_year})</span></div>`;
     if (impact.coauthor_count) grid.innerHTML += `<div class="card-field"><span class="label">Co-authors</span><span class="value">${impact.coauthor_count}+</span></div>`;
     c.appendChild(grid);
-
-    // Publications by year
     const byYear = impact.publications_by_year || {};
     const yearKeys = Object.keys(byYear);
     if (yearKeys.length) {
@@ -402,8 +402,6 @@ const ShipcrawlerUI = (() => {
       ytable.innerHTML += '</tbody>';
       c.appendChild(ytable);
     }
-
-    // Top publications
     const topPubs = cm.top_publications || impact.top_publications || [];
     if (topPubs.length) {
       c.innerHTML += `<div class="section-label" style="color:var(--color-accent);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;margin:1rem 0 0.5rem;">Most Cited Publications</div>`;
@@ -422,7 +420,7 @@ const ShipcrawlerUI = (() => {
       c.innerHTML = '<div style="color:var(--color-ink-2);font-size:0.85rem;">No publication data.</div>';
       return;
     }
-    c.innerHTML += `<div style="color:var(--color-ink-2);font-size:0.78rem;margin-bottom:0.75rem;">Showing ${pubs.length} publication(s).</div>`;
+    c.innerHTML += '<div style="color:var(--color-ink-2);font-size:0.78rem;margin-bottom:0.75rem;">Showing ' + pubs.length + ' publication(s).</div>';
     const table = document.createElement('table');
     table.className = 'port-calls-table';
     table.innerHTML = '<thead><tr><th>Year</th><th>Title</th><th>Venue</th></tr></thead><tbody>';
@@ -434,7 +432,7 @@ const ShipcrawlerUI = (() => {
     table.innerHTML += '</tbody>';
     c.appendChild(table);
     if (pubs.length > 30) {
-      c.innerHTML += `<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--color-ink-2);">... and ${pubs.length - 30} more.</div>`;
+      c.innerHTML += '<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--color-ink-2);">... and ' + (pubs.length - 30) + ' more.</div>';
     }
   }
 
@@ -473,7 +471,7 @@ const ShipcrawlerUI = (() => {
     for (const vec of ts.vectors) {
       const vc = document.createElement('div');
       vc.className = 'vector-card';
-      vc.innerHTML = `<h4>${esc(vec.name)}</h4><div class="meta"><span>⚙️ Difficulty: <strong>${esc(vec.difficulty)}</strong></span><span>💰 Cost: <strong>${esc(vec.cost)}</strong></span><span>👁️ Detection: <strong>${esc(vec.detection_prob)}</strong></span></div>`;
+      vc.innerHTML = `<h4>${esc(vec.name)}</h4><div class="meta"><span>⚙️ Difficulty: <strong>${esc(vec.difficulty)}</strong></span><span>💰 Cost: <strong>${esc(vec.cost)}</strong></span><span>👁‍🗨️ Detection: <strong>${esc(vec.detection_prob)}</strong></span></div>`;
       if (vec.equipment && vec.equipment.length) {
         vc.innerHTML += `<div class="section-label">Equipment</div><ul>${vec.equipment.map(e => `<li>${esc(e)}</li>`).join('')}</ul>`;
       }
@@ -532,7 +530,7 @@ const ShipcrawlerUI = (() => {
   }
 
   function closeThemeEditor() {
-    loadTheme(); // Revert
+    loadTheme();
     document.getElementById('theme-editor-overlay').classList.remove('visible');
   }
 

@@ -1,0 +1,10 @@
+{
+  "task_id": "f0260707",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/chuang-li-imo-9815991-report",
+  "report_files": [
+    "/root/chuang-li-imo-9815991-report/analyst-report.md"
+  ],
+  "hermes_exit": 0
+}

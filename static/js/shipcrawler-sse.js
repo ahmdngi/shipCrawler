@@ -1,19 +1,37 @@
-/* Shipcrawler SSE — Real-time search progress */
+/* Shipcrawler SSE v5 — Real-time phase streaming client */
 const ShipcrawlerSSE = (() => {
   function connect(taskId, callbacks) {
     const evtSource = new EventSource(`/api/stream/${taskId}`);
 
-    evtSource.addEventListener('progress', (e) => {
+    evtSource.addEventListener('phase_start', (e) => {
       const data = JSON.parse(e.data);
-      if (callbacks.onProgress) callbacks.onProgress(data);
-      if (data.status === 'done' && data.data && callbacks.onComplete) {
-        callbacks.onComplete(data.data);
-        evtSource.close();
-      }
-      if (data.status === 'error' && callbacks.onError) {
-        callbacks.onError(data.message);
-        evtSource.close();
-      }
+      if (callbacks.onPhaseStart) callbacks.onPhaseStart(data);
+    });
+
+    evtSource.addEventListener('phase_output', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onPhaseOutput) callbacks.onPhaseOutput(data);
+    });
+
+    evtSource.addEventListener('phase_complete', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onPhaseComplete) callbacks.onPhaseComplete(data);
+    });
+
+    evtSource.addEventListener('phase_error', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onPhaseError) callbacks.onPhaseError(data);
+    });
+
+    evtSource.addEventListener('report_complete', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onReportComplete) callbacks.onReportComplete(data);
+    });
+
+    evtSource.addEventListener('done', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onDone) callbacks.onDone(data);
+      evtSource.close();
     });
 
     evtSource.addEventListener('error', () => {
@@ -24,5 +42,16 @@ const ShipcrawlerSSE = (() => {
     return evtSource;
   }
 
-  return { connect };
+  function loadReport(taskId, callbacks) {
+    fetch(`/api/report/${taskId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (callbacks.onReportData) callbacks.onReportData(data);
+      })
+      .catch(err => {
+        if (callbacks.onError) callbacks.onError('Failed to load report: ' + err.message);
+      });
+  }
+
+  return { connect, loadReport };
 })();
