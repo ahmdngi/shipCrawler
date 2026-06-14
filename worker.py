@@ -182,6 +182,23 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
     else:
         analyst_path.write_text(f"# {name} — OSINT Report\n\nAI agent returned no output.\n\n{stderr}")
 
+    # Copy agent-created report files into the worker's report dir
+    # Agent may have saved files to its own directory during the session
+    agent_dirs = list(REPORT_BASE.glob(f"{clean_for_filename(safe_name)}*"))
+    for ad in agent_dirs:
+        if ad == report_dir:
+            continue
+        for f in ad.glob("*.md"):
+            dest = report_dir / f.name
+            if not dest.exists():
+                dest.write_text(f.read_text())
+                print(f"[worker {task_id}] Copied {f.name} from {ad.name}")
+        # Clean up the agent-created dir
+        import shutil
+        shutil.rmtree(ad, ignore_errors=True)
+        print(f"[worker {task_id}] Cleaned up agent dir: {ad.name}")
+    sys.stdout.flush()
+
     duration = time.time() - start_total
     summary = f"Research complete ({duration:.0f}s, exit={exit_code})"
 

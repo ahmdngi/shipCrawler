@@ -1,0 +1,11 @@
+{
+  "task_id": "8102e68e",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/hermes-vault/osint-reports/silegna-mmsi-276012370-report",
+  "report_files": [
+    "/root/hermes-vault/osint-reports/silegna-mmsi-276012370-report/analyst-report.md"
+  ],
+  "duration_total": 303.3,
+  "hermes_exit": 0
+}

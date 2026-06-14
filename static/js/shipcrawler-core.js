@@ -544,23 +544,30 @@ const ShipcrawlerCore = (() => {
       if (tasks[i].task_id === taskId) { entry = tasks[i]; break; }
     }
 
-    // Try API with task_id first, fall back to by-name with the saved name
-    var url = '/api/report/' + taskId;
-    if (entry && entry.name) url = '/api/report/by-name/' + encodeURIComponent(entry.name);
+    function doLoad(url) {
+      fetch(url)
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(data) {
+          currentReport = data;
+          if (els.reportSection) els.reportSection.classList.add('visible');
+          if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
+          displayReport(data);
+          renderHistory();
+          populateRightPanel(data);
+        })
+        .catch(function(err) {
+          onError('Could not load report: ' + err.message);
+        });
+    }
 
-    fetch(url)
-      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function(data) {
-        currentReport = data;
-        if (els.reportEl) els.reportEl.classList.add('visible');
-        if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
-        displayReport(data);
-        renderHistory();
-        populateRightPanel(data);
-      })
-      .catch(function(err) {
-        onError('Could not load previous report: ' + err.message);
-      });
+    if (entry && entry.name) {
+      doLoad('/api/report/by-name/' + encodeURIComponent(entry.name));
+    } else if (entry) {
+      // No name saved — try deriving from the task's report directory
+      doLoad('/api/report/by-name/' + encodeURIComponent(taskId));
+    } else {
+      onError('Report not found in history');
+    }
   }
 
   // Override loadReport to also save to history
@@ -589,25 +596,60 @@ const ShipcrawlerCore = (() => {
 
   function populateRightPanel(data) {
     var list = document.getElementById('right-panel-list');
-    if (!list || !data.phase_contents) { if (list) list.innerHTML = '<div class="right-panel-empty">No phase files</div>'; return; }
-    var names = Object.keys(data.phase_contents);
-    if (names.length === 0) { list.innerHTML = '<div class="right-panel-empty">No phase files</div>'; return; }
-    var html = '';
-    for (var i = 0; i < names.length; i++) {
-      var label = names[i].replace(/^phase-\d+-/, '').replace(/-/g, ' ').replace(/—-/g, '— ').substring(0, 30);
-      html += '<div class="right-panel-item" data-phase="' + names[i] + '">📄 ' + label + '</div>';
+    if (!list) return;
+
+    // Try phase_contents first (from API), then content for report files
+    var files = {};
+    if (data.phase_contents) {
+      files = data.phase_contents;
     }
-    list.innerHTML = html;
+
+    // Also look for report files in the content (analyst-report, red-team, indicators)
+    // Only show the clean report files, not raw phase files
+    var reportFiles = {};
+    var reportDir = data.report_dir;
+    if (reportDir) {
+      var niceNames = {
+        'analyst-report.md': '📋 Analyst Report',
+        'red-team-playbook.md': '⚔️ Red Team Playbook',
+        'indicators-and-detection.md': '🔍 Detection Rules',
+      };
+      // Check if these exist in the phase_contents or we need to derive
+      for (var key in files) {
+        for (var nice in niceNames) {
+          if (key.includes(nice.replace('.md','')) || key.includes('analyst') || key.includes('red-team') || key.includes('indicator')) {
+            reportFiles[key] = { label: niceNames[nice] || key, content: files[key] };
+          }
+        }
+      }
+    }
+
+    // Fallback: if no structured report files found, show what we have
+    var keys = Object.keys(reportFiles);
+    if (keys.length === 0) {
+      keys = Object.keys(files);
+      for (var i = 0; i < keys.length; i++) {
+        reportFiles[keys[i]] = { label: keys[i].replace(/^phase-\d+-/, '').replace(/-/g, ' ').substring(0, 30), content: files[keys[i]] };
+      }
+    }
+    if (keys.length === 0) {
+      keys = ['analyst-report'];
+      reportFiles['analyst-report'] = { label: '📋 Analyst Report', content: data.content || 'No content' };
+    }
+
+    var html = '';
+    for (var i = 0; i < keys.length; i++) {
+      var rf = reportFiles[keys[i]];
+      html += '<div class="right-panel-item" data-content="' + escapeHtml(rf.content || rf.label) + '">' + rf.label + '</div>';
+    }
+    list.innerHTML = html || '<div class="right-panel-empty">No report files</div>';
+
     var items = list.querySelectorAll('.right-panel-item');
     for (var i = 0; i < items.length; i++) {
       items[i].addEventListener('click', function() {
-        var key = this.dataset.phase;
-        var content = data.phase_contents[key];
-        // Remove active from others
         list.querySelectorAll('.right-panel-item').forEach(function(el) { el.classList.remove('active'); });
         this.classList.add('active');
-        // Show in a modal overlay
-        showPhaseModal(key, content);
+        showPhaseModal(this.textContent.trim(), this.dataset.content);
       });
     }
   }
