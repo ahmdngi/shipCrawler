@@ -1,0 +1,16 @@
+{
+  "task_id": "a93bb3c2",
+  "mode": "vessel",
+  "status": "done",
+  "report_dir": "/root/aurora-mmsi-276017550-report",
+  "report_files": [
+    "/root/aurora-mmsi-276017550-report/analyst-report.md",
+    "/root/aurora-mmsi-276017550-report/phase-0-equasis-\u2014-vessel-identity.md",
+    "/root/aurora-mmsi-276017550-report/phase-1-target-identification.md",
+    "/root/aurora-mmsi-276017550-report/phase-2-attack-surface-discovery.md",
+    "/root/aurora-mmsi-276017550-report/phase-3-vulnerability-assessment.md",
+    "/root/aurora-mmsi-276017550-report/phase-4-threat-intelligence.md",
+    "/root/aurora-mmsi-276017550-report/phase-5-report-generation.md"
+  ],
+  "duration_total": 1102.0
+}

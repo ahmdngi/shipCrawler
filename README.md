@@ -1,4 +1,4 @@
-# Shipcrawler v5 — Phase Agent OSINT Dashboard
+# Shipcrawler v6.1 — Phase Agent OSINT Dashboard
 
 Real-time, phase-by-phase Hermes agent investigation with SSE streaming.
 
@@ -52,6 +52,21 @@ Dashboard: `http://100.72.133.89:9091`
 | `/api/stream/<task_id>` | GET | SSE stream of phase progress |
 | `/api/report/<task_id>` | GET | Get full report data |
 | `/api/health` | GET | Queue health check |
+
+## Changelog
+
+### v6.1
+- Added sidebar with search history (localStorage, persisted across sessions)
+- Tabbed report section (Overview / Technical / Red Team / Detection / Assessment)
+- Phases stay visible when report loads
+- Fixed HOME env var not passed to Hermes subprocess (Shodan API key resolution)
+- Defensive null-checks in all JS (no more "Cannot set properties of null" errors)
+- Tab switching with active state highlighting
+
+### v5
+- Initial phase-agent architecture with 6 sequential Hermes phases
+- SSE streaming of phase progress to browser
+- worker_progress.py JSON Lines logger
 
 ## Phases
 

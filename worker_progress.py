@@ -2,7 +2,7 @@
 """Progress log writer for Shipcrawler v4 real-time streaming.
 
 Writes JSON Lines to queue/progress/<task_id>.log.
-Thread-safe via atomic tempfile + rename.
+Single-writer (worker.py is the sole writer) — appends with fsync for durability.
 """
 
 import json
@@ -32,13 +32,11 @@ def write_event(task_id: str, event_type: str, **fields):
         **fields,
     }
 
-    # Atomic write: write to .tmp, rename
-    tmp = log_path.with_suffix(".log.tmp")
-    with open(tmp, "a") as f:
+    # Single-writer: direct append + fsync
+    with open(log_path, "a") as f:
         f.write(json.dumps(record, default=str) + "\n")
         f.flush()
         os.fsync(f.fileno())
-    os.rename(tmp, log_path)
 
 
 def phase_start(task_id: str, phase: int, name: str):

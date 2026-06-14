@@ -534,10 +534,40 @@ const ShipcrawlerUI = (() => {
     document.getElementById('theme-editor-overlay').classList.remove('visible');
   }
 
+  // ── Vulnerability Assessment ──────────────────────────────
+  function renderVuln(data) {
+    var c = document.getElementById('vuln-content');
+    if (!c) return;
+    c.innerHTML = '';
+    if (!data || !data.findings || data.findings.length === 0) {
+      c.innerHTML = '<div style="color:var(--color-ink-2);font-size:0.85rem;padding:0.5rem 0;">No vulnerabilities identified — vessel has minimal internet-facing systems.</div>';
+      return;
+    }
+    for (var i = 0; i < data.findings.length; i++) {
+      var f = data.findings[i];
+      var risk = (f.risk || 'LOW').toUpperCase();
+      c.innerHTML += '<div class="shodan-item"><span style="color:var(--color-accent);font-weight:bold;">' + esc(f.name || 'Finding') + '</span> <span class="risk-badge risk-' + risk + '">' + risk + '</span><br><span style="font-size:0.78rem;color:var(--color-ink-2);">' + esc(f.description || '') + '</span></div>';
+    }
+  }
+
+  // ── Risk Assessment ───────────────────────────────────────
+  function renderRisk(data) {
+    var c = document.getElementById('risk-content');
+    if (!c) return;
+    c.innerHTML = '';
+    var tier = (data.risk_tier || 'LOW').toUpperCase();
+    var overall = (data.overall || 'MEDIUM').toUpperCase();
+    c.innerHTML = '<div class="card-grid">' +
+      '<div class="card-field"><span class="label">Risk Tier</span><span class="risk-badge risk-' + tier + '" style="font-size:0.9rem;">' + tier + '</span></div>' +
+      '<div class="card-field"><span class="label">Confidence</span><span class="risk-badge risk-' + overall + '">' + overall + '</span></div>' +
+      '</div>';
+  }
+
   return {
     animateCards, renderGrid, renderStatusGrid,
     renderPortCalls, renderShodan, renderRedTeam,
     renderDetection, renderAnalysis,
+    renderVuln, renderRisk,
     renderPersonIdentity, renderProfessionalHistory,
     renderSocialMedia, renderDigitalFootprint,
     renderPersonAnalysis, renderTargetingScenarios,

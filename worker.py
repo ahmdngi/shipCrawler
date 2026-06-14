@@ -240,6 +240,7 @@ def run_hermes_phase(phase_num: int, phase_name: str, name: str, mode: str,
             capture_output=True,
             text=True,
             timeout=300,  # 5 min per phase max
+            env={**os.environ, "HOME": os.path.expanduser("~")},
         )
         output = result.stdout or ""
         stderr = result.stderr or ""

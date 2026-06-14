@@ -23,7 +23,7 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    print(f"  🚢 Shipcrawler OSINT Dashboard v5 (Phase Agent)")
+    print(f"  🚢 Shipcrawler OSINT Dashboard v6.1 (Phase Agent)")
     print(f"  🌐 http://{TAILSCALE_IP}:{PORT}")
     print(f"  🔒 Binding to Tailscale IP: {TAILSCALE_IP}")
     print()
