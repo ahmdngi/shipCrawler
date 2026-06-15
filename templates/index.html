@@ -68,13 +68,20 @@
   </div>
 </section>
 
-<!-- ── Phase Terminal Feed ── -->
-<div id="terminal-feed" class="terminal-feed" style="display:none;">
-  <div class="feed-header">
-    <span class="feed-title">▶ Investigation Phases</span>
-    <span class="feed-subtitle" id="feed-target"></span>
+<!-- ── Investigation Terminal ── -->
+<div id="terminal-feed" class="terminal-window" style="display:none;">
+  <div class="terminal-titlebar">
+    <div class="terminal-dots">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-yellow"></span>
+      <span class="dot dot-green"></span>
+    </div>
+    <span class="terminal-title">investigation.mjs</span>
+    <span class="terminal-cmd" id="feed-target"></span>
   </div>
-  <div class="feed-body" id="feed-body"></div>
+  <div class="terminal-body" id="feed-body">
+    <div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>
+  </div>
 </div>
 
 <!-- ── Final Summary Bar ── -->

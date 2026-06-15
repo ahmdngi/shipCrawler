@@ -80,7 +80,10 @@ const ShipcrawlerCore = (() => {
   function showFeed() {
     if (!els.feed) return;
     els.feed.style.display = 'block';
-    els.feed.innerHTML = '';
+    els.feed.scrollTop = 0;
+    // Clear only the terminal body, preserve title bar
+    const body = document.getElementById('feed-body');
+    if (body) body.innerHTML = '<div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>';
     if (els.finalSummary) els.finalSummary.style.display = 'none';
   }
 
@@ -126,16 +129,16 @@ const ShipcrawlerCore = (() => {
 
     line.appendChild(content);
     els.feed.appendChild(line);
-    els.feed.scrollTop = els.feed.scrollHeight;
+    if (els.feedBody) els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
   function addProgressLine(phase, text) {
     if (!els.feed) return;
     const line = document.createElement('div');
     line.className = 'phase-line phase-progress';
-    line.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-2);font-size:0.75rem;">' + escapeHtml(text) + '</span>';
+    line.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(text) + '</span>';
     els.feed.appendChild(line);
-    els.feed.scrollTop = els.feed.scrollHeight;
+    if (els.feedBody) els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
   const PHASE_COLORS = {
@@ -172,11 +175,11 @@ const ShipcrawlerCore = (() => {
       lineEl.innerHTML = '<span class="phase-badge" style="background-color:' + toolColor + '">' + tool + '</span>' +
         '<span class="phase-content">' + escapeHtml(line) + '</span>';
     } else if (type === 'tool_error') {
-      lineEl.innerHTML = '<span class="phase-badge" style="background-color:#e63946">ERROR</span><span class="phase-content" style="color:var(--color-accent);">' + escapeHtml(line) + '</span>';
+      lineEl.innerHTML = '<span class="phase-badge" style="background-color:#ff5f56">ERROR</span><span class="phase-content" style="color:#ff5f56;">' + escapeHtml(line) + '</span>';
     } else if (type === 'tool_detail') {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-2);font-size:0.75rem;">' + escapeHtml(line) + '</span>';
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:#22d3ee;font-size:0.72rem;">' + escapeHtml(line) + '</span>';
     } else if (type === 'thinking') {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-3);font-size:0.72rem;font-style:italic;">' + escapeHtml(line) + '</span>';
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:#666;font-size:0.7rem;font-style:italic;">' + escapeHtml(line) + '</span>';
     } else {
       lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(line) + '</span>';
     }

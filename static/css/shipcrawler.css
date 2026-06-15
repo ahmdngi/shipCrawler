@@ -165,66 +165,144 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
 .search-container button:disabled { opacity:0.5; cursor:not-allowed; }
 
 /* ─── Phase Terminal Feed ────────────────────────────────── */
-#terminal-feed {
+/* ─── Terminal Window (ui-layouts style) ─────────────────── */
+.terminal-window {
   position:relative; z-index:1;
-  width:100%; max-width:720px; margin:1.5rem auto;
-  background: var(--color-paper-3);
-  border:1px solid var(--color-ink-3);
-  border-radius:8px; overflow:hidden;
-  box-shadow:0 4px 24px rgba(0,0,0,0.4);
+  width:100%; max-width:800px; margin:1.5rem auto;
+  background:#0d0d0d;
+  border:1px solid #1a1a2e;
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(50,115,255,0.05) inset;
+  font-family:"Fira Code","Courier New",monospace;
 }
-.feed-header {
+.terminal-titlebar {
   display:flex; align-items:center; gap:0.75rem;
-  padding:0.6rem 1rem;
-  background:rgba(0,0,0,0.3);
-  border-bottom:1px solid var(--color-ink-3);
+  padding:0.65rem 1rem;
+  background:#1a1a1a;
+  border-bottom:1px solid #222;
   font-size:0.75rem;
+  user-select:none;
 }
-.feed-title {
-  color:var(--color-green); text-transform:uppercase;
-  letter-spacing:0.08em; font-weight:bold;
+.terminal-dots { display:flex; gap:6px; }
+.terminal-dots .dot {
+  width:10px; height:10px; border-radius:50%;
+  display:inline-block;
 }
-.feed-subtitle {
-  flex:1; color:var(--color-ink-2);
+.dot-red    { background:#ff5f56; }
+.dot-yellow { background:#ffbd2e; }
+.dot-green  { background:#27c93f; }
+.terminal-title {
+  color:#888; font-size:0.75rem;
+  position:absolute; left:50%; transform:translateX(-50%);
 }
-.feed-body {
-  padding:0.6rem 1rem;
-  max-height:480px; overflow-y:auto;
-  font-size:0.82rem; line-height:1.5;
+.terminal-cmd {
+  flex:1; text-align:right;
+  color:#555; font-size:0.72rem;
+}
+.terminal-body {
+  padding:0.75rem 1rem;
+  max-height:520px; min-height:120px;
+  overflow-y:auto;
+  font-size:0.82rem; line-height:1.6;
   scroll-behavior:smooth;
+  background:#0d0d0d;
 }
-.feed-body::-webkit-scrollbar { width:4px; }
-.feed-body::-webkit-scrollbar-track { background:transparent; }
-.feed-body::-webkit-scrollbar-thumb { background:var(--color-ink-3); border-radius:2px; }
+.terminal-body::-webkit-scrollbar { width:4px; }
+.terminal-body::-webkit-scrollbar-track { background:transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background:#333; border-radius:2px; }
+.terminal-prompt {
+  color:#555;
+  font-size:0.82rem;
+  margin-bottom:0.3rem;
+}
+.prompt-cursor {
+  animation: blink-cursor 1s step-end infinite;
+  color:#555;
+  font-size:0.85rem;
+}
+@keyframes blink-cursor {
+  0%, 100% { opacity:1; }
+  50% { opacity:0; }
+}
 
-/* Phase lines */
+/* Phase lines — terminal log style */
 .phase-line {
-  padding:0.3rem 0;
+  padding:0.2rem 0;
   display:flex; align-items:flex-start; gap:0.5rem;
-  opacity:0; animation:phase-appear 0.3s ease forwards;
-  font-family:"Fira Code", "Courier New", monospace;
+  opacity:0; animation:phase-appear 0.25s ease forwards;
+  font-family:"Fira Code","Courier New",monospace;
 }
+@keyframes phase-appear {
+  from { opacity:0; transform:translateY(-4px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* Start phase = magenta/purple like ui-layouts profiling */
+.phase-line.phase-start .phase-content {
+  color:#c084fc;
+  font-weight:bold;
+  font-size:0.82rem;
+}
+.phase-line.phase-start .phase-badge {
+  background:#7c3aed;
+  color:#fff;
+}
+
+/* Complete = green */
+.phase-line.phase-complete .phase-content {
+  color:#27c93f;
+}
+.phase-line.phase-complete .phase-badge {
+  background:#27c93f;
+  color:#000;
+}
+
+/* Error = red */
+.phase-line.phase-error .phase-content {
+  color:#ff5f56;
+}
+.phase-line.phase-error .phase-badge {
+  background:#ff5f56;
+  color:#fff;
+}
+
+/* Tool call output = cyan like ui-layouts log entries */
 .phase-line.phase-output .phase-content {
-  color:var(--color-green);
-  text-shadow:0 0 4px rgba(80,250,123,0.3);
+  color:#22d3ee;
   font-size:0.75rem;
 }
 .phase-line.phase-tool_detail .phase-content {
-  color:var(--color-green);
+  color:#22d3ee;
   opacity:0.7;
   font-size:0.72rem;
-  text-shadow:0 0 2px rgba(80,250,123,0.15);
 }
+.phase-line.phase-tool_start .phase-badge {
+  min-width:5rem;
+  border-radius:3px; font-size:0.62rem;
+  text-align:center; color:#fff;
+}
+.phase-line.phase-tool_error .phase-content {
+  color:#ff5f56;
+}
+
+/* Thinking = dim grey */
 .phase-line.phase-thinking .phase-content {
-  color:var(--color-ink-2);
+  color:#666;
   font-size:0.7rem;
   font-style:italic;
-  opacity:0.5;
 }
-@keyframes phase-appear {
-  from { opacity:0; transform:translateX(-8px); }
-  to   { opacity:1; transform:translateX(0); }
+
+/* Progress lines = dim */
+.phase-line.phase-progress .phase-content {
+  color:#777;
+  font-size:0.75rem;
 }
+.phase-progress { padding-left:0.5rem; }
+.phase-tool_detail { padding-left:0.5rem; }
+.phase-thinking { padding-left:0.5rem; }
+.phase-output { padding-left:0.5rem; }
+.phase-indent { width:0; flex-shrink:0; }
+
 .phase-badge {
   display:inline-block; padding:0.1rem 0.5rem;
   border-radius:3px; font-size:0.62rem; font-weight:bold;
@@ -233,50 +311,42 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
   line-height:1.4; color:#fff;
 }
 .phase-content {
-  color:var(--color-ink-2);
+  color:#ccc;
   flex:1; font-size:0.82rem;
 }
 .phase-duration {
-  color:var(--color-ink-3); font-size:0.72rem;
-}
-.phase-complete .phase-content { color:var(--color-ink); }
-.phase-error .phase-content { color:var(--color-accent); }
-.phase-progress { padding-left:0.5rem; }
-.phase-tool_start .phase-badge { min-width:5rem; }
-.phase-tool_error .phase-content { color:var(--color-accent); }
-.phase-tool_detail { padding-left:0.5rem; }
-.phase-thinking { padding-left:0.5rem; }
-.phase-output { padding-left:0.5rem; }
-.phase-indent { width:0; flex-shrink:0; }
-.spinner {
-  display:inline-block;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  0% { transform:rotate(0deg); }
-  100% { transform:rotate(360deg); }
+  color:#666; font-size:0.72rem;
 }
 
 /* Live phase timer */
 .phase-timer {
-  color:var(--color-green);
+  color:#22d3ee;
   font-size:0.72rem;
   margin-left:0.4rem;
   font-weight:bold;
-  animation: pulse-timer 1.5s ease-in-out infinite;
+  animation:pulse-timer 1.5s ease-in-out infinite;
 }
 @keyframes pulse-timer {
-  0%, 100% { opacity:1; }
+  0%,100% { opacity:1; }
   50% { opacity:0.5; }
 }
 
 /* Pulsing active phase badge */
 .phase-line.phase-start .phase-badge {
-  animation: badge-pulse 2s ease-in-out infinite;
+  animation:badge-pulse 2s ease-in-out infinite;
 }
 @keyframes badge-pulse {
-  0%, 100% { filter:brightness(1); }
-  50% { filter:brightness(1.3); }
+  0%,100% { filter:brightness(1); }
+  50% { filter:brightness(1.4); }
+}
+
+.spinner {
+  display:inline-block;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
 }
 
 /* ─── Final Summary Bar ─────────────────────────────────── */
@@ -547,7 +617,7 @@ footer {
   nav { padding:0.6rem 1rem; }
   .card-grid { grid-template-columns:1fr 1fr; }
   .search-container input { min-width:180px; }
-  .feed-body { max-height:320px; }
+  .terminal-body { max-height:320px; }
   .phase-line { flex-wrap:wrap; gap:0.2rem; }
   .phase-badge { min-width:2.5rem; }
 }
