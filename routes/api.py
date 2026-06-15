@@ -2,6 +2,7 @@
 """API routes for Shipcrawler v4 — queue-based, phase-streaming, Hermes-powered."""
 
 import json
+import os
 import time
 import uuid
 from datetime import datetime, timezone

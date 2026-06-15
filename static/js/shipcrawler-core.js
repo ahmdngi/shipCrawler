@@ -539,7 +539,7 @@ const ShipcrawlerCore = (() => {
     if (stored) {
       try {
         var tasks = JSON.parse(stored);
-        if (tasks.length > 0) { renderHistory(tasks); return; }
+        if (tasks.length > 0) { renderHistory(tasks); autoLoadLatest(tasks); return; }
       } catch(e) {}
     }
     // Fallback: fetch history from server
@@ -549,10 +549,7 @@ const ShipcrawlerCore = (() => {
         if (reports && reports.length > 0) {
           localStorage.setItem('shipcrawler-history', JSON.stringify(reports));
           renderHistory(reports);
-          if (!window._autoLoaded) {
-            window._autoLoaded = true;
-            loadFromHistory(reports[0].task_id);
-          }
+          autoLoadLatest(reports);
         } else {
           var list = document.getElementById('sidebar-list');
           if (list) list.innerHTML = '<div class="sidebar-empty">No searches yet</div>';
@@ -562,6 +559,12 @@ const ShipcrawlerCore = (() => {
         var list = document.getElementById('sidebar-list');
         if (list) list.innerHTML = '<div class="sidebar-empty">Could not load history</div>';
       });
+  }
+
+  function autoLoadLatest(tasks) {
+    if (window._autoLoaded) return;
+    window._autoLoaded = true;
+    loadFromHistory(tasks[0].task_id);
   }
 
   function renderHistory(tasks) {

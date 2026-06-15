@@ -1,4 +1,4 @@
-# Shipcrawler v6.4b — AI Agent OSINT Dashboard
+# Shipcrawler v6.4c — AI Agent OSINT Dashboard
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
@@ -146,6 +146,11 @@ Dashboard: `http://100.72.133.89:9091`
 | **5 — Report Generation** | All prior phases | Consolidated person report with risk assessment |
 
 ## Changelog
+
+### v6.4c
+- **Fix: `/api/history` crash** — missing `import os` caused 500 error on every page load. Sidebar history never populated, auto-load was broken.
+- **Fix: refresh loses everything** — history sidebar now auto-loads the most recent report on page refresh (from both localStorage and API). Report reappears without a new search.
+- **Resilience** — auto-load deduplicated into shared `autoLoadLatest()` function, works from both localStorage cache and API fallback.
 
 ### v6.4b
 - **Fix: missing shipcrawler-ui.js script tag** — `ShipcrawlerUI` was never loaded, causing `loadTheme()` to throw a ReferenceError that blocked `ShipcrawlerCore.init()`. Search button was unresponsive. Added the missing `<script>` tag.
