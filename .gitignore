@@ -4,4 +4,5 @@ __pycache__/
 .env
 .seed_cache.json
 data/
+queue/
 

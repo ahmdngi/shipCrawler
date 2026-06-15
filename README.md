@@ -1,4 +1,4 @@
-# Shipcrawler v6.3 — AI Agent OSINT Dashboard
+# Shipcrawler v6.3b — AI Agent OSINT Dashboard
 
 Real-time, phase-by-phase Hermes agent investigation with SSE streaming.
 
