@@ -111,6 +111,14 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
     print(f"[worker {task_id}] Starting shipcrawler research on \"{name}\" ({mode})...")
     sys.stdout.flush()
 
+    # Emit filler frames so frontend shows progress immediately
+    worker_phase_output(task_id, 0, "AI agent initializing...", "tool_detail")
+    worker_phase_output(task_id, 0, "Loading OSINT reconnaissance tools...", "tool_detail")
+    if mode == "vessel":
+        worker_phase_output(task_id, 0, "Starting Phase 0 — vessel identity & Equasis lookup...", "tool_detail")
+    else:
+        worker_phase_output(task_id, 0, "Starting Phase 1 — identity & academic source search...", "tool_detail")
+
     cmd = [
         HERMES_BIN, "chat",
         "-q", prompt,

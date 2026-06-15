@@ -151,6 +151,7 @@ Dashboard: `http://100.72.133.89:9091`
 - **Fix: missing shipcrawler-ui.js script tag** — `ShipcrawlerUI` was never loaded, causing `loadTheme()` to throw a ReferenceError that blocked `ShipcrawlerCore.init()`. Search button was unresponsive. Added the missing `<script>` tag.
 - **Fix: phase lines rendered outside terminal body** — `appendChild` was targeting the outer `terminal-window` instead of the inner `terminal-body`. Stream content appeared below the blinking cursor with a gap. Moved all append/scroll to `feedBody`.
 - **Fix: static $ prompt not removed on stream start** — the blinking cursor prompt stayed at the top while investigation content streamed below. Prompt is now removed when the first phase line arrives.
+- **Worker: real-time filler frames** — search now shows 3 progress messages instantly ("AI agent initializing...", "Loading OSINT tools...", "Starting Phase...") before the AI agent subprocess even starts, eliminating dead air after clicking Search.
 - **Resilience** — `ShipcrawlerUI.loadTheme()` wrapped in try/catch so UI module failure doesn't break core search functionality.
 
 ### v6.3b
