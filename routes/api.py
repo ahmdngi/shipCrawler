@@ -131,8 +131,9 @@ def init_routes(app):
     @app.route("/api/report/by-name/<name>")
     def get_report_by_name(name):
         """Find report directory by vessel/person name (deterministic path)."""
-        from worker import clean_for_filename, REPORT_BASE
-        dir_name = clean_for_filename(name) + "-report"
+        from worker import sanitize_name, clean_for_filename, REPORT_BASE
+        safe = sanitize_name(name)
+        dir_name = clean_for_filename(safe) + "-report"
         report_dir = REPORT_BASE / dir_name
 
         if not report_dir.exists():
@@ -201,7 +202,27 @@ def init_routes(app):
         report_dir = Path(report_dir)
         return _build_report_response(done_data, report_dir)
 
-    # ─── Health ───────────────────────────────────────────────────────────────
+    # ─── History: list all report directories ──────────────────
+
+    @app.route("/api/history")
+    def get_history():
+        """List all available report directories with metadata."""
+        from worker import REPORT_BASE
+        reports = []
+        for d in sorted(REPORT_BASE.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
+            if not d.is_dir() or not d.name.endswith("-report"):
+                continue
+            # Derive name from directory name: "rina--imo-9152820-report" → "RINA IMO 9152820"
+            raw = d.name.replace("-report", "")
+            # Convert back to a readable name (best effort)
+            name = raw.replace("-", " ").strip()
+            reports.append({
+                "task_id": d.name,
+                "name": name.title(),
+                "mode": "vessel",
+                "timestamp": int(os.path.getmtime(d) * 1000),
+            })
+        return jsonify(reports)
 
     @app.route("/api/health")
     def health():

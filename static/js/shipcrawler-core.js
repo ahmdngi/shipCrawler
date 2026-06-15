@@ -20,6 +20,7 @@ const ShipcrawlerCore = (() => {
     els.contextInput = id('context-input');
     els.contextContainer = id('context-container');
     els.finalSummary = id('final-summary');
+    els.feedBody = id('feed-body');
 
     if (!els.btn || !els.input) {
       console.error('ShipcrawlerCore: missing required elements');
@@ -59,12 +60,6 @@ const ShipcrawlerCore = (() => {
     if (!sidebarOpen) { document.getElementById('sidebar').classList.add('closed'); document.body.classList.add('sidebar-closed'); }
     loadHistory();
 
-    // Auto-load the most recent search from history
-    var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
-    if (tasks.length > 0) {
-      loadFromHistory(tasks[0].task_id);
-    }
-
     // Live timer tick every second
     setInterval(function() {
       var timers = document.querySelectorAll('.phase-timer');
@@ -76,6 +71,9 @@ const ShipcrawlerCore = (() => {
         t.textContent = mins > 0 ? ' ' + mins + 'm ' + secs + 's' : ' ' + secs + 's';
       }
     }, 1000);
+
+    // Auto-scroll for terminal feed
+    initAutoScroll();
   }
 
   // ── Terminal Feed ──────────────────────────────────────────
@@ -180,11 +178,25 @@ const ShipcrawlerCore = (() => {
     } else if (type === 'thinking') {
       lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink-3);font-size:0.72rem;font-style:italic;">' + escapeHtml(line) + '</span>';
     } else {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:var(--color-ink);font-size:0.78rem;">' + escapeHtml(line) + '</span>';
+      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(line) + '</span>';
     }
 
     els.feed.appendChild(lineEl);
-    els.feed.scrollTop = els.feed.scrollHeight;
+    autoScroll();
+  }
+
+  var _userScrolled = false;
+  function initAutoScroll() {
+    if (!els.feedBody) return;
+    els.feedBody.addEventListener('scroll', function() {
+      var threshold = 50;
+      var atBottom = els.feedBody.scrollHeight - els.feedBody.scrollTop - els.feedBody.clientHeight < threshold;
+      _userScrolled = !atBottom;
+    });
+  }
+  function autoScroll() {
+    if (!els.feedBody || _userScrolled) return;
+    els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
   function toolColorMap(tool) {
@@ -505,21 +517,48 @@ const ShipcrawlerCore = (() => {
   function saveToHistory(entry) {
     var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
     for (var i = 0; i < tasks.length; i++) {
-      if (tasks[i].task_id === entry.task_id) { tasks[i] = entry; localStorage.setItem('shipcrawler-history', JSON.stringify(tasks)); renderHistory(); return; }
+      if (tasks[i].task_id === entry.task_id) { tasks[i] = entry; localStorage.setItem('shipcrawler-history', JSON.stringify(tasks)); renderHistory(tasks); return; }
     }
     tasks.unshift(entry);
     if (tasks.length > 50) tasks.pop();
     localStorage.setItem('shipcrawler-history', JSON.stringify(tasks));
-    renderHistory();
+    renderHistory(tasks);
   }
 
-  function loadHistory() { renderHistory(); }
+  function loadHistory() {
+    var stored = localStorage.getItem('shipcrawler-history');
+    if (stored) {
+      try {
+        var tasks = JSON.parse(stored);
+        if (tasks.length > 0) { renderHistory(tasks); return; }
+      } catch(e) {}
+    }
+    // Fallback: fetch history from server
+    fetch('/api/history')
+      .then(function(r) { return r.json(); })
+      .then(function(reports) {
+        if (reports && reports.length > 0) {
+          localStorage.setItem('shipcrawler-history', JSON.stringify(reports));
+          renderHistory(reports);
+          if (!window._autoLoaded) {
+            window._autoLoaded = true;
+            loadFromHistory(reports[0].task_id);
+          }
+        } else {
+          var list = document.getElementById('sidebar-list');
+          if (list) list.innerHTML = '<div class="sidebar-empty">No searches yet</div>';
+        }
+      })
+      .catch(function() {
+        var list = document.getElementById('sidebar-list');
+        if (list) list.innerHTML = '<div class="sidebar-empty">Could not load history</div>';
+      });
+  }
 
-  function renderHistory() {
+  function renderHistory(tasks) {
     var list = document.getElementById('sidebar-list');
     if (!list) return;
-    var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
-    if (tasks.length === 0) { list.innerHTML = '<div class="sidebar-empty">No searches yet</div>'; return; }
+    if (!tasks || tasks.length === 0) { list.innerHTML = '<div class=\"sidebar-empty\">No searches yet</div>'; return; }
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
       var t = tasks[i];
@@ -552,7 +591,8 @@ const ShipcrawlerCore = (() => {
           if (els.reportSection) els.reportSection.classList.add('visible');
           if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
           displayReport(data);
-          renderHistory();
+          var stored = localStorage.getItem('shipcrawler-history');
+          renderHistory(stored ? JSON.parse(stored) : []);
           populateRightPanel(data);
         })
         .catch(function(err) {
@@ -604,22 +644,18 @@ const ShipcrawlerCore = (() => {
       files = data.phase_contents;
     }
 
-    // Also look for report files in the content (analyst-report, red-team, indicators)
-    // Only show the clean report files, not raw phase files
+    // Show only the clean report files, not raw-output.md
     var reportFiles = {};
-    var reportDir = data.report_dir;
-    if (reportDir) {
-      var niceNames = {
-        'analyst-report.md': '📋 Analyst Report',
-        'red-team-playbook.md': '⚔️ Red Team Playbook',
-        'indicators-and-detection.md': '🔍 Detection Rules',
-      };
-      // Check if these exist in the phase_contents or we need to derive
-      for (var key in files) {
-        for (var nice in niceNames) {
-          if (key.includes(nice.replace('.md','')) || key.includes('analyst') || key.includes('red-team') || key.includes('indicator')) {
-            reportFiles[key] = { label: niceNames[nice] || key, content: files[key] };
-          }
+    var niceNames = {
+      'analyst-report.md': '📋 Analyst Report',
+      'red-team-playbook.md': '⚔️ Red Team Playbook',
+      'indicators-and-detection.md': '🔍 Detection Rules',
+    };
+    for (var key in files) {
+      if (key === 'raw-output' || key === 'raw-output.md') continue;
+      for (var nice in niceNames) {
+        if (key.includes(nice.replace('.md','').replace('-',''))) {
+          reportFiles[key] = { label: niceNames[nice], content: files[key] };
         }
       }
     }
@@ -638,9 +674,13 @@ const ShipcrawlerCore = (() => {
     }
 
     var html = '';
+    // Store report content in a map by filename (avoids data-* truncation)
+    var _reportContentMap = {};
+    // ... in populateRightPanel:
     for (var i = 0; i < keys.length; i++) {
       var rf = reportFiles[keys[i]];
-      html += '<div class="right-panel-item" data-content="' + escapeHtml(rf.content || rf.label) + '">' + rf.label + '</div>';
+      _reportContentMap[keys[i]] = rf.content || '';
+      html += '<div class="right-panel-item" data-key="' + keys[i] + '">' + rf.label + '</div>';
     }
     list.innerHTML = html || '<div class="right-panel-empty">No report files</div>';
 
@@ -649,7 +689,8 @@ const ShipcrawlerCore = (() => {
       items[i].addEventListener('click', function() {
         list.querySelectorAll('.right-panel-item').forEach(function(el) { el.classList.remove('active'); });
         this.classList.add('active');
-        showPhaseModal(this.textContent.trim(), this.dataset.content);
+        var key = this.dataset.key || this.textContent.trim();
+        showPhaseModal(this.textContent.trim(), _reportContentMap[key] || '');
       });
     }
   }
@@ -664,8 +705,87 @@ const ShipcrawlerCore = (() => {
     modal.innerHTML = '<div class="modal-content" style="max-width:800px;max-height:85vh;">' +
       '<button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>' +
       '<h3 style="color:var(--color-accent);margin-bottom:0.5rem;">📄 ' + escapeHtml(name) + '</h3>' +
-      '<pre style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;font-size:0.75rem;line-height:1.4;color:var(--color-ink);white-space:pre-wrap;word-break:break-word;">' + escapeHtml(content) + '</pre></div>';
+      '<div class="markdown-body" style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;font-size:0.82rem;line-height:1.6;"></div></div>';
+    // Close on click outside content
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
     document.body.appendChild(modal);
+
+    // Append md-block with raw markdown as textContent (safe from XSS)
+    var body = modal.querySelector('.markdown-body');
+    var mdBlock = document.createElement('md-block');
+    mdBlock.textContent = content || '';
+    body.appendChild(mdBlock);
+  }
+
+  function renderMarkdown(md) {
+    if (!md) return '';
+    var html = md
+      // Escape HTML tags first
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // Horizontal rules
+      .replace(/^---$/gm, '<hr>')
+      // Headings (h1-h4)
+      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // Blockquotes
+      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code style="background:rgba(80,250,123,0.1);padding:0.1rem 0.3rem;border-radius:3px;font-size:0.78rem;">$1</code>')
+      // Bold and italic
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--color-accent);">$1</a>');
+
+    // Process tables on the escaped-but-not-yet-paragraphed text
+    var lines = html.split('\n');
+    var inTable = false, tableStarted = false;
+    for (var li = 0; li < lines.length; li++) {
+      var l = lines[li];
+      var isSep = /^\|[-| :]+\|$/.test(l);
+      var isRow = /^\|.+\|$/.test(l);
+      if (isRow && !inTable) {
+        var nextLine = lines[li + 1] || '';
+        if (/^\|[-| :]+\|$/.test(nextLine)) {
+          inTable = true; tableStarted = true;
+          lines[li] = l.replace(/^\|(.+)\|$/, '<table class="rt"><thead><tr>$1</tr></thead>');
+          continue;
+        }
+      }
+      if (isSep && inTable && tableStarted) {
+        lines[li] = '<tbody>';
+        tableStarted = false;
+        continue;
+      }
+      if (isRow && inTable) {
+        lines[li] = l.replace(/^\|(.+)\|$/, function(m, c) {
+          var cells = c.split('|').filter(function(x) { return x.trim(); });
+          return '<tr>' + cells.map(function(x) { return '<td>' + x.trim() + '</td>'; }).join('') + '</tr>';
+        });
+        continue;
+      }
+      if (!isRow && !isSep && inTable) {
+        lines[li] = '</tbody></table>\n' + l;
+        inTable = false;
+      }
+    }
+    html = lines.join('\n');
+
+    // Lists, paragraphs, line breaks (on full html including table tags)
+    html = html
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/^\d+\.\s(.+)$/gm, '<li>$1</li>')
+      .replace(/((<li>.*<\/li>\n?)+)/g, '<ul style="padding-left:1.5rem;margin:0.5rem 0;">$1</ul>')
+      .replace(/\n\n/g, '</p><p style="margin:0.5rem 0;">')
+      .replace(/\n/g, '<br>');
+
+    // Style table cells
+    html = html.replace(/<td>/g, '<td style="padding:0.3rem 0.5rem;border-bottom:1px solid rgba(53,90,102,0.2);">');
+
+    return '<p style="margin:0.5rem 0;">' + html + '</p>';
   }
 
   return {

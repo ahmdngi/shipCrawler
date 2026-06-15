@@ -51,9 +51,17 @@ Dashboard: `http://100.72.133.89:9091`
 | `/api/status/<task_id>` | GET | Check task status |
 | `/api/stream/<task_id>` | GET | SSE stream of phase progress |
 | `/api/report/<task_id>` | GET | Get full report data |
+| `/api/report/by-name/<name>` | GET | Lookup report by vessel/person name |
+| `/api/history` | GET | List all past report directories (sorted by recency) |
 | `/api/health` | GET | Queue health check |
 
 ## Changelog
+
+### v6.3b
+- New `/api/history` endpoint — lists all past report directories sorted by modification time for search history without re-parsing files
+- Worker raw vs clean separation — Hermes full output saved as `raw-output.md`, agent-created `.md` files copied into report dir separately and sorted. Prevents clean analyst reports from being overwritten by raw prompt/tool-call dumps
+- Name sanitization fix — `/api/report/by-name/<name>` now uses `sanitize_name()` before `clean_for_filename()`, fixes edge cases with punctuation in vessel names
+- `md-block` library added to templates — renders markdown directly in HTML for cleaner report file display
 
 ### v6.3
 - Real-time tool-call streaming: worker now uses Popen to read Hermes output line-by-line

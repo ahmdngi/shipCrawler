@@ -175,25 +175,27 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
 
     output = "".join(output_lines)
 
-    # Write the Hermes output as the analyst report
-    analyst_path = report_dir / "analyst-report.md"
+    # Write the raw Hermes output as raw-output.md (full trace with prompt + tool calls)
+    raw_path = report_dir / "raw-output.md"
     if output.strip():
-        analyst_path.write_text(output[:100000])
+        raw_path.write_text(output[:100000])
     else:
-        analyst_path.write_text(f"# {name} — OSINT Report\n\nAI agent returned no output.\n\n{stderr}")
+        raw_path.write_text(f"AI agent returned no output.\n\n{stderr}")
 
     # Copy agent-created report files into the worker's report dir
-    # Agent may have saved files to its own directory during the session
-    agent_dirs = list(REPORT_BASE.glob(f"{clean_for_filename(safe_name)}*"))
+    # Agent may have saved clean files to its own directory (e.g., "rina-report")
+    first_word = safe_name.split()[0].lower() if safe_name.split() else safe_name.lower()
+    agent_dirs = list(REPORT_BASE.glob(f"{first_word}*"))
     for ad in agent_dirs:
         if ad == report_dir:
             continue
-        for f in ad.glob("*.md"):
+        if not ad.is_dir():
+            continue
+        for f in sorted(ad.glob("*.md")):
             dest = report_dir / f.name
-            if not dest.exists():
+            if not dest.exists() and f.name != "raw-output.md":
                 dest.write_text(f.read_text())
                 print(f"[worker {task_id}] Copied {f.name} from {ad.name}")
-        # Clean up the agent-created dir
         import shutil
         shutil.rmtree(ad, ignore_errors=True)
         print(f"[worker {task_id}] Cleaned up agent dir: {ad.name}")
@@ -212,8 +214,8 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
 
     # Check what other files the agent may have written
     md_files = sorted(report_dir.glob("*.md"))
-    if analyst_path not in md_files:
-        md_files.insert(0, analyst_path)
+    if raw_path not in md_files:
+        md_files.insert(0, raw_path)
 
     total_duration = time.time() - start_total
     wp.report_complete(task_id, str(report_dir), total_duration, [f.name for f in md_files])
