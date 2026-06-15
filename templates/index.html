@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shipcrawler OSINT Dashboard v5</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="/static/css/shipcrawler.css">
 </head>
 <body>
@@ -118,10 +117,7 @@
         <div class="card-grid" id="status-fields"></div>
       </div>
     </div>
-    <div class="card full-width" data-card="map" id="map-card" style="display:none">
-      <div class="card-title"><span>🗺️</span> Position</div>
-      <div id="map-container"></div>
-    </div>
+
     <div class="card full-width" data-card="port-calls">
       <div class="card-title"><span>⚓</span> Port Calls</div>
       <div id="port-calls-content"></div>
@@ -254,9 +250,7 @@
 <!-- md-block for markdown rendering -->
 <script type="module" src="https://md-block.verou.me/md-block.js"></script>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="/static/js/shipcrawler-ui.js?v=6"></script>
-<script src="/static/js/shipcrawler-map.js?v=4"></script>
+
 <script src="/static/js/shipcrawler-sse.js?v=5"></script>
 <script src="/static/js/shipcrawler-core.js?v=6"></script>
 <script>
