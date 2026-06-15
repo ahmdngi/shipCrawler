@@ -81,7 +81,9 @@ const ShipcrawlerCore = (() => {
     if (!els.feed) return;
     els.feed.style.display = 'block';
     els.feed.scrollTop = 0;
-    // Clear only the terminal body, preserve title bar
+    // Remove any phase lines that were appended outside feed-body
+    els.feed.querySelectorAll('.phase-line').forEach(el => el.remove());
+    // Clear terminal body and set prompt
     const body = document.getElementById('feed-body');
     if (body) body.innerHTML = '<div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>';
     if (els.finalSummary) els.finalSummary.style.display = 'none';
@@ -95,6 +97,10 @@ const ShipcrawlerCore = (() => {
     if (!els.feed) return;
     const line = document.createElement('div');
     line.className = 'phase-line phase-' + type;
+
+    // Remove the static $ prompt once real content starts
+    const prompt = els.feedBody && els.feedBody.querySelector('.terminal-prompt');
+    if (prompt) prompt.remove();
 
     const badge = document.createElement('span');
     badge.className = 'phase-badge';
@@ -128,7 +134,7 @@ const ShipcrawlerCore = (() => {
     }
 
     line.appendChild(content);
-    els.feed.appendChild(line);
+    els.feedBody.appendChild(line);
     if (els.feedBody) els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
@@ -137,7 +143,7 @@ const ShipcrawlerCore = (() => {
     const line = document.createElement('div');
     line.className = 'phase-line phase-progress';
     line.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(text) + '</span>';
-    els.feed.appendChild(line);
+    els.feedBody.appendChild(line);
     if (els.feedBody) els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
@@ -184,7 +190,7 @@ const ShipcrawlerCore = (() => {
       lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(line) + '</span>';
     }
 
-    els.feed.appendChild(lineEl);
+    els.feedBody.appendChild(lineEl);
     autoScroll();
   }
 
@@ -229,7 +235,7 @@ const ShipcrawlerCore = (() => {
     } else {
       addPhaseLine(data, 'complete');
     }
-    els.feed.scrollTop = els.feed.scrollHeight;
+    els.feedBody.scrollTop = els.feedBody.scrollHeight;
   }
 
   function onPhaseError(data) { addPhaseLine(data, 'error'); }
@@ -250,7 +256,7 @@ const ShipcrawlerCore = (() => {
     var line = document.createElement('div');
     line.className = 'phase-line phase-error';
     line.innerHTML = '<span class="phase-badge" style="background-color:#e63946">ERROR</span><span class="phase-content">❌ ' + escapeHtml(msg) + '</span>';
-    els.feed.appendChild(line);
+    els.feedBody.appendChild(line);
     if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
   }
 

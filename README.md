@@ -1,4 +1,4 @@
-# Shipcrawler v6.3b — AI Agent OSINT Dashboard
+# Shipcrawler v6.4b — AI Agent OSINT Dashboard
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
@@ -146,6 +146,12 @@ Dashboard: `http://100.72.133.89:9091`
 | **5 — Report Generation** | All prior phases | Consolidated person report with risk assessment |
 
 ## Changelog
+
+### v6.4b
+- **Fix: missing shipcrawler-ui.js script tag** — `ShipcrawlerUI` was never loaded, causing `loadTheme()` to throw a ReferenceError that blocked `ShipcrawlerCore.init()`. Search button was unresponsive. Added the missing `<script>` tag.
+- **Fix: phase lines rendered outside terminal body** — `appendChild` was targeting the outer `terminal-window` instead of the inner `terminal-body`. Stream content appeared below the blinking cursor with a gap. Moved all append/scroll to `feedBody`.
+- **Fix: static $ prompt not removed on stream start** — the blinking cursor prompt stayed at the top while investigation content streamed below. Prompt is now removed when the first phase line arrives.
+- **Resilience** — `ShipcrawlerUI.loadTheme()` wrapped in try/catch so UI module failure doesn't break core search functionality.
 
 ### v6.3b
 - Repo renamed from `shipcrawler-v4` to `shipcrawler` (old v3 deprecated and removed)
