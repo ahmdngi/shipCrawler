@@ -88,6 +88,7 @@ def init_routes(app):
             after_bytes = 0
             last_activity = time.time()
             timeout = 600  # 10 min total timeout
+            queued_sent = False
 
             while True:
                 # Check if task is done or errored
@@ -103,7 +104,32 @@ def init_routes(app):
                     yield f"event: done\ndata: {json.dumps(done_data)}\n\n"
                     break
 
-                # Read new progress events
+                # ─── Queued state: task in pending, not picked up yet ─────
+                pending_file = PENDING_DIR / f"{task_id}.json"
+                progress_log = QUEUE_DIR / "progress" / f"{task_id}.log"
+
+                if pending_file.exists():
+                    if not queued_sent:
+                        # Count position in queue
+                        pending_files = sorted(PENDING_DIR.glob("*.json"))
+                        position = next((i for i, p in enumerate(pending_files) if p.stem == task_id), 0)
+                        total = len(pending_files)
+                        yield f"event: queued\ndata: {json.dumps({'event': 'queued', 'task_id': task_id, 'position': position, 'total': total})}\n\n"
+                        queued_sent = True
+                    elif queued_sent:
+                        # Re-check position every cycle
+                        pending_files = sorted(PENDING_DIR.glob("*.json"))
+                        position = next((i for i, p in enumerate(pending_files) if p.stem == task_id), 0)
+                        total = len(pending_files)
+                        yield f"event: queued\ndata: {json.dumps({'event': 'queued', 'task_id': task_id, 'position': position, 'total': total})}\n\n"
+                    time.sleep(1)
+                    continue
+
+                # ─── Transition: just moved to running ────────────────
+                if not queued_sent and progress_log.exists():
+                    queued_sent = True
+
+                # ─── Normal progress reading ──────────────────────────
                 events, after_bytes = wp.read_progress(task_id, after_bytes)
                 for evt in events:
                     yield f"event: {evt['event']}\ndata: {json.dumps(evt)}\n\n"
@@ -148,6 +174,19 @@ def init_routes(app):
             "status": "done",
             "report_dir": str(report_dir),
         }
+        # Try to find duration from done files matching this report_dir
+        done_dir = QUEUE_DIR / "done"
+        if done_dir.exists():
+            for df in done_dir.glob("*.json"):
+                try:
+                    with open(df) as f:
+                        dd = json.load(f)
+                    if dd.get("report_dir") == str(report_dir):
+                        done_data["duration_total"] = dd.get("duration_total")
+                        done_data["report_files_list"] = dd.get("report_files", [])
+                        break
+                except (json.JSONDecodeError, OSError):
+                    continue
         return _build_report_response(done_data, report_dir)
 
     def _build_report_response(done_data, report_dir):
@@ -162,6 +201,13 @@ def init_routes(app):
         raw_markdown = {}
         for md_file in sorted(report_dir.glob("*.md")):
             raw_markdown[md_file.name] = md_file.read_text()
+
+        # Also send clean report files individually (not just concatenated)
+        report_files = {}
+        for clean_name in ["analyst-report.md", "red-team-playbook.md", "indicators-and-detection.md"]:
+            clean_path = report_dir / clean_name
+            if clean_path.exists():
+                report_files[clean_name] = clean_path.read_text()
 
         content_text = "\n\n---\n\n".join(raw_markdown.values())
 
@@ -180,6 +226,7 @@ def init_routes(app):
             "duration_total": done_data.get("duration_total"),
             "phase_files": list(phase_data.keys()),
             "phase_contents": phase_data,
+            "report_files": report_files,
         }
         if "error" not in structured:
             response.update(structured)

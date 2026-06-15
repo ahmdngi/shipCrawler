@@ -162,7 +162,13 @@ const ShipcrawlerCore = (() => {
   }
 
   // ── SSE Callbacks ──────────────────────────────────────────
-  function onPhaseStart(data) { addPhaseLine(data, 'start'); phaseCount++; }
+  function onPhaseStart(data) {
+    // Remove queued indicator once work starts
+    if (_queuedLine) { _queuedLine.remove(); _queuedLine = null; }
+    if (els.btn) els.btn.textContent = 'Running...';
+    addPhaseLine(data, 'start');
+    phaseCount++;
+  }
   function onPhaseOutput(data) {
     var line = (data.line || '').trim();
     if (!line || line.length <= 3) return;
@@ -244,9 +250,25 @@ const ShipcrawlerCore = (() => {
     if (els.finalSummary) {
       els.finalSummary.style.display = 'flex';
       var sp = id('summary-phases'); if (sp) sp.textContent = phaseCount;
-      var sd = id('summary-duration'); if (sd) sd.textContent = data.duration_total ? data.duration_total + 's' : '?';
+      var sd = id('summary-duration'); if (sd) sd.textContent = data.duration_total ? Math.round(data.duration_total / 60) + 'm' : '?';
       var sf = id('summary-files'); if (sf) sf.textContent = (data.files || []).length;
     }
+  }
+
+  function updateSummaryBar(data) {
+    if (!els.finalSummary) return;
+    els.finalSummary.style.display = 'flex';
+    var sp = id('summary-phases');
+    var phaseCount = data.phase_files ? data.phase_files.length : (data.phase_contents ? Object.keys(data.phase_contents).length : 0);
+    // Fallback: if no phase files, count report files as phases
+    if (phaseCount === 0 && data.report_files) {
+      phaseCount = Object.keys(data.report_files).length;
+    }
+    if (sp) sp.textContent = phaseCount;
+    var sd = id('summary-duration');
+    if (sd) sd.textContent = data.duration_total ? Math.round(data.duration_total / 60) + 'm' : 'N/A';
+    var sf = id('summary-files');
+    if (sf) sf.textContent = data.report_files ? Object.keys(data.report_files).length : '0';
   }
 
   function onDone(data) { loadReport(data.task_id); }
@@ -258,6 +280,27 @@ const ShipcrawlerCore = (() => {
     line.innerHTML = '<span class="phase-badge" style="background-color:#e63946">ERROR</span><span class="phase-content">❌ ' + escapeHtml(msg) + '</span>';
     els.feedBody.appendChild(line);
     if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
+  }
+
+  // ── Queued state ──────────────────────────────────────────
+  var _queuedLine = null;
+  function onQueued(data) {
+    if (!els.feed) return;
+    var pos = data.position + 1;
+    var total = data.total;
+    var msg = '⏳ In queue (position ' + pos + ' of ' + total + ')';
+    if (!_queuedLine) {
+      _queuedLine = document.createElement('div');
+      _queuedLine.className = 'phase-line';
+      _queuedLine.innerHTML = '<span class="phase-badge" style="background-color:var(--color-badge-queue)">QUEUED</span><span class="phase-content">' + msg + '</span>';
+      els.feedBody.appendChild(_queuedLine);
+      els.feedBody.scrollTop = els.feedBody.scrollHeight;
+    } else {
+      _queuedLine.querySelector('.phase-content').textContent = msg;
+    }
+    // Clear placeholder cursor/prompt
+    var prompt = els.feedBody.querySelector('.terminal-prompt');
+    if (prompt) prompt.style.display = 'none';
   }
 
   // ── Search ──────────────────────────────────────────────────
@@ -298,6 +341,7 @@ const ShipcrawlerCore = (() => {
         onPhaseComplete: onPhaseComplete,
         onPhaseError: onPhaseError,
         onReportComplete: onReportComplete,
+        onQueued: onQueued,
         onDone: onDone,
         onError: onError,
       });
@@ -609,6 +653,8 @@ const ShipcrawlerCore = (() => {
           if (els.reportSection) els.reportSection.classList.add('visible');
           if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
           displayReport(data);
+          // Update summary bar with history data
+          updateSummaryBar(data);
           var stored = localStorage.getItem('shipcrawler-history');
           renderHistory(stored ? JSON.parse(stored) : []);
           populateRightPanel(data);
@@ -661,9 +707,11 @@ const ShipcrawlerCore = (() => {
     var list = document.getElementById('right-panel-list');
     if (!list) return;
 
-    // Try phase_contents first (from API), then content for report files
+    // Try report_files first (clean report files from API), then phase_contents
     var files = {};
-    if (data.phase_contents) {
+    if (data.report_files && Object.keys(data.report_files).length > 0) {
+      files = data.report_files;
+    } else if (data.phase_contents) {
       files = data.phase_contents;
     }
 
@@ -676,10 +724,16 @@ const ShipcrawlerCore = (() => {
     };
     for (var key in files) {
       if (key === 'raw-output' || key === 'raw-output.md') continue;
+      var matched = false;
       for (var nice in niceNames) {
-        if (key.includes(nice.replace('.md','').replace('-',''))) {
+        if (key === nice || key.replace(/\.[^/.]+$/, '') === nice.replace(/\.[^/.]+$/, '') || key === nice.replace('.md', '')) {
           reportFiles[key] = { label: niceNames[nice], content: files[key] };
+          matched = true;
+          break;
         }
+      }
+      if (!matched) {
+        reportFiles[key] = { label: key.replace(/^phase-\d+-/, '').replace(/-/g, ' ').substring(0, 30), content: files[key] };
       }
     }
 
@@ -725,7 +779,7 @@ const ShipcrawlerCore = (() => {
     modal.id = 'phase-modal';
     modal.className = 'modal-overlay visible';
     modal.style.cssText = 'z-index:300;';
-    modal.innerHTML = '<div class="modal-content" style="max-width:800px;max-height:85vh;">' +
+    modal.innerHTML = '<div class="modal-content" style="max-width:1200px;max-height:85vh;">' +
       '<button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>' +
       '<h3 style="color:var(--color-accent);margin-bottom:0.5rem;">📄 ' + escapeHtml(name) + '</h3>' +
       '<div class="markdown-body" style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;font-size:0.82rem;line-height:1.6;"></div></div>';

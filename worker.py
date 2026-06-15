@@ -84,6 +84,8 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"equipment list, numbered execution steps, detection points table\n"
             f"3. indicators-and-detection.md — indicator table (ID, type, phase, priority, description), "
             f"Elastic SIEM rules, Zeek scripts, M-SOC runbook\n\n"
+            f"CRITICAL: Write all report files using Python (open().write()) — NEVER use bash heredocs "
+            f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
             f"and report zero findings explicitly (it's a finding). Provide confidence levels."
         )

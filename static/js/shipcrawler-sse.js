@@ -1,4 +1,4 @@
-/* Shipcrawler SSE v5 — Real-time phase streaming client */
+/* Shipcrawler SSE v6 — Real-time phase streaming client */
 const ShipcrawlerSSE = (() => {
   function connect(taskId, callbacks) {
     const evtSource = new EventSource(`/api/stream/${taskId}`);
@@ -26,6 +26,11 @@ const ShipcrawlerSSE = (() => {
     evtSource.addEventListener('report_complete', (e) => {
       const data = JSON.parse(e.data);
       if (callbacks.onReportComplete) callbacks.onReportComplete(data);
+    });
+
+    evtSource.addEventListener('queued', (e) => {
+      const data = JSON.parse(e.data);
+      if (callbacks.onQueued) callbacks.onQueued(data);
     });
 
     evtSource.addEventListener('done', (e) => {
