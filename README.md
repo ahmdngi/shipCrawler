@@ -1,4 +1,4 @@
-# Shipcrawler v6.4c — AI Agent OSINT Dashboard
+# Shipcrawler v6.4d — AI Agent OSINT Dashboard
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
@@ -146,6 +146,11 @@ Dashboard: `http://100.72.133.89:9091`
 | **5 — Report Generation** | All prior phases | Consolidated person report with risk assessment |
 
 ## Changelog
+
+### v6.4d
+- **Fix: duplicated history entries** — investigations saved history with queue task ID (`c3402624`), API returned entries with directory name (`tarmo-report`). Different IDs = duplicates shown. Now normalized to directory name everywhere.
+- **Fix: sidebar active state invisible** — `currentReport.task_id` never matched history entry IDs, so `active` class was never applied. Clicking an item showed no visual feedback. Now both use report directory name.
+- **Fix: stale localStorage overrides API** — `loadHistory()` used localStorage as primary source and never refreshed from API. Stale entries accumulated. Now API is the source of truth, localStorage is fallback on network error.
 
 ### v6.4c
 - **Fix: `/api/history` crash** — missing `import os` caused 500 error on every page load. Sidebar history never populated, auto-load was broken.

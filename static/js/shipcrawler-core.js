@@ -535,19 +535,13 @@ const ShipcrawlerCore = (() => {
   }
 
   function loadHistory() {
-    var stored = localStorage.getItem('shipcrawler-history');
-    if (stored) {
-      try {
-        var tasks = JSON.parse(stored);
-        if (tasks.length > 0) { renderHistory(tasks); autoLoadLatest(tasks); return; }
-      } catch(e) {}
-    }
-    // Fallback: fetch history from server
+    // Fetch history from API as source of truth, fall back to localStorage cache
     fetch('/api/history')
       .then(function(r) { return r.json(); })
       .then(function(reports) {
         if (reports && reports.length > 0) {
           localStorage.setItem('shipcrawler-history', JSON.stringify(reports));
+          localStorage.setItem('shipcrawler-history-ts', String(Date.now()));
           renderHistory(reports);
           autoLoadLatest(reports);
         } else {
@@ -556,6 +550,14 @@ const ShipcrawlerCore = (() => {
         }
       })
       .catch(function() {
+        // API failed — fall back to localStorage cache
+        var stored = localStorage.getItem('shipcrawler-history');
+        if (stored) {
+          try {
+            var tasks = JSON.parse(stored);
+            if (tasks.length > 0) { renderHistory(tasks); autoLoadLatest(tasks); return; }
+          } catch(e) {}
+        }
         var list = document.getElementById('sidebar-list');
         if (list) list.innerHTML = '<div class="sidebar-empty">Could not load history</div>';
       });
@@ -600,6 +602,10 @@ const ShipcrawlerCore = (() => {
         .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function(data) {
           currentReport = data;
+          if (data.report_dir) {
+            var parts = data.report_dir.replace(/\/+$/, '').split('/');
+            data.task_id = parts[parts.length - 1];
+          }
           if (els.reportSection) els.reportSection.classList.add('visible');
           if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
           displayReport(data);
@@ -628,8 +634,13 @@ const ShipcrawlerCore = (() => {
     fetch('/api/report/' + taskId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
+        // Normalize task_id to report directory name for consistent history matching
+        if (data.report_dir) {
+          var parts = data.report_dir.replace(/\/+$/, '').split('/');
+          data.task_id = parts[parts.length - 1];
+        }
         currentReport = data;
-        saveToHistory({ task_id: taskId, name: _currentQuery || taskId, mode: currentMode, timestamp: Date.now() });
+        saveToHistory({ task_id: data.task_id, name: _currentQuery || data.task_id.replace('-report', '').replace(/-/g, ' '), mode: currentMode, timestamp: Date.now() });
         if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
         if (els.input) els.input.value = '';
         setTimeout(function() { displayReport(data); populateRightPanel(data); }, 300);
