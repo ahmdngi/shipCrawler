@@ -18,11 +18,24 @@ const ShipcrawlerMap = (() => {
         zoom: 5,
         zoomControl: true,
         attributionControl: false,
+        scrollWheelZoom: false,  // we handle this manually for cursor-based zoom
       });
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
       }).addTo(map);
+
+      // Zoom toward mouse cursor instead of map center
+      map.on('wheel', function(e) {
+        e.originalEvent.preventDefault();
+        const delta = e.originalEvent.deltaY;
+        const zoomDelta = delta > 0 ? -1 : 1;
+        const currentZoom = map.getZoom();
+        const newZoom = Math.min(Math.max(currentZoom + zoomDelta, map.getMinZoom()), map.getMaxZoom());
+        if (newZoom === currentZoom) return;
+        const mouseLatLng = map.containerPointToLatLng(e.containerPoint);
+        map.setView(mouseLatLng, newZoom, { animate: true });
+      });
 
       marker = L.marker([lat, lon]).addTo(map);
       marker.bindPopup(`<b>${vesselName}</b><br>${lat}, ${lon}`);
