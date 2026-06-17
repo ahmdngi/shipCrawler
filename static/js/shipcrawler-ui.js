@@ -485,53 +485,78 @@ const ShipcrawlerUI = (() => {
     }
   }
 
-  // ── Theme Editor ────────────────────────────────────────────
-  function openThemeEditor() {
-    const overlay = document.getElementById('theme-editor-overlay');
-    if (!overlay) return;
-    overlay.classList.add('visible');
-    const root = document.documentElement;
-    const vars = ['--color-paper', '--color-paper-2', '--color-paper-3', '--color-ink', '--color-ink-2', '--color-ink-3', '--color-accent', '--color-accent-2', '--color-accent-ink', '--color-green', '--color-gold'];
-    const container = overlay.querySelector('.theme-fields');
-    container.innerHTML = vars.map(v => {
-      const val = getComputedStyle(root).getPropertyValue(v).trim();
-      const name = v.replace('--color-', '').replace(/-/g, ' ');
-      return `<div class="theme-field"><label>${name}</label><input type="text" data-var="${v}" value="${val}"></div>`;
-    }).join('');
-    container.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', () => {
-        document.documentElement.style.setProperty(input.dataset.var, input.value);
-      });
-    });
-  }
+  // ── Preset Themes ──────────────────────────────────────────
+  const THEMES = {
+    dark: {
+      name: 'Dark',
+      vars: {
+        '--color-paper':      'oklch(19.5% 0.015 260)',
+        '--color-paper-2':    'oklch(14%  0.012 260)',
+        '--color-paper-3':    'oklch(6%   0.005 290)',
+        '--color-ink':        'oklch(83%  0.075 220)',
+        '--color-ink-2':      'oklch(56%  0.045 210)',
+        '--color-ink-3':      'oklch(38%  0.050 220)',
+        '--color-accent':     'oklch(58%  0.165 25)',
+        '--color-accent-2':   'oklch(68%  0.115 25)',
+        '--color-accent-ink': 'oklch(96%  0.020 25)',
+        '--color-green':      'oklch(82%  0.210 145)',
+        '--color-gold':       'oklch(73%  0.140 75)',
+      }
+    },
+    classic: {
+      name: 'Classic',
+      vars: {
+        '--color-paper':      'oklch(19.5% 0.015 220)',
+        '--color-paper-2':    'oklch(14%  0.012 220)',
+        '--color-paper-3':    'oklch(6%   0.005 250)',
+        '--color-ink':        'oklch(83%  0.075 200)',
+        '--color-ink-2':      'oklch(56%  0.045 190)',
+        '--color-ink-3':      'oklch(38%  0.050 200)',
+        '--color-accent':     'oklch(62% 0.18 160)',
+        '--color-accent-2':   'oklch(50% 0.12 160)',
+        '--color-accent-ink': '#fff',
+        '--color-green':      'oklch(62% 0.18 160)',
+        '--color-gold':       'oklch(73% 0.14 75)',
+      }
+    },
+    oversight: {
+      name: 'Oversight',
+      vars: {
+        '--color-paper':      'oklch(93% 0.012 90)',
+        '--color-paper-2':    'oklch(89% 0.01 90)',
+        '--color-paper-3':    'oklch(84% 0.01 90)',
+        '--color-ink':        'oklch(15% 0.01 90)',
+        '--color-ink-2':      'oklch(40% 0.015 90)',
+        '--color-ink-3':      'oklch(55% 0.02 90)',
+        '--color-accent':     'oklch(62% 0.18 160)',
+        '--color-accent-2':   'oklch(50% 0.12 160)',
+        '--color-accent-ink': '#fff',
+        '--color-green':      'oklch(62% 0.18 160)',
+        '--color-gold':       'oklch(73% 0.14 75)',
+      }
+    }
+  };
 
-  function saveTheme() {
-    const vars = ['--color-paper', '--color-paper-2', '--color-paper-3', '--color-ink', '--color-ink-2', '--color-ink-3', '--color-accent', '--color-accent-2', '--color-accent-ink', '--color-green', '--color-gold'];
-    const theme = {};
-    vars.forEach(v => {
-      theme[v] = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  function applyTheme(name) {
+    const theme = THEMES[name];
+    if (!theme) return;
+    const root = document.documentElement;
+    for (const [key, val] of Object.entries(theme.vars)) {
+      root.style.setProperty(key, val);
+    }
+    localStorage.setItem('shipcrawler-theme', name);
+    // Update active pill
+    document.querySelectorAll('.theme-pill').forEach(el => {
+      el.classList.toggle('active', el.dataset.theme === name);
     });
-    try {
-      localStorage.setItem('shipcrawler-theme', JSON.stringify(theme));
-    } catch {}
-    document.getElementById('theme-editor-overlay').classList.remove('visible');
   }
 
   function loadTheme() {
     try {
       const saved = localStorage.getItem('shipcrawler-theme');
-      if (saved) {
-        const theme = JSON.parse(saved);
-        for (const [key, val] of Object.entries(theme)) {
-          document.documentElement.style.setProperty(key, val);
-        }
-      }
+      if (saved && THEMES[saved]) { applyTheme(saved); return; }
     } catch {}
-  }
-
-  function closeThemeEditor() {
-    loadTheme();
-    document.getElementById('theme-editor-overlay').classList.remove('visible');
+    applyTheme('dark');
   }
 
   // ── Vulnerability Assessment ──────────────────────────────
@@ -573,6 +598,6 @@ const ShipcrawlerUI = (() => {
     renderPersonAnalysis, renderTargetingScenarios,
     renderConfidenceAssessment, renderAffiliationTimeline,
     renderResearchImpact, renderPublications, renderCoauthors,
-    openThemeEditor, saveTheme, loadTheme, closeThemeEditor,
+    loadTheme, applyTheme,
   };
 })();

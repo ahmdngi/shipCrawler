@@ -1,4 +1,4 @@
-# Shipcrawler v6.4e — AI-Powered Maritime OSINT Platform
+# Shipcrawler v6.4f — AI-Powered Maritime OSINT Platform
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
@@ -418,6 +418,12 @@ hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 ---
 
 ## Changelog
+
+### v6.4f
+- **Color theme system** — three presets (Dark, Classic, Oversight) with switcher in nav bar, replacing old color picker modal
+- **Oversight theme** — light beige background with green accents, JetBrains Mono + Inter fonts
+- **Classic theme** — dark with green accent palette
+- **Live theme switching** — no reload needed; all panels, terminal, and modal adopt theme instantly
 
 ### v6.4e
 - **Queued state** — SSE stream now emits `queued` event when task is in pending queue. Frontend shows position (e.g. "In queue (position 2 of 3)")
