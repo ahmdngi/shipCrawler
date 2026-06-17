@@ -12,6 +12,7 @@ PORT = 9091
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.urandom(24)
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
 
     # Register routes
     from routes.api import init_routes

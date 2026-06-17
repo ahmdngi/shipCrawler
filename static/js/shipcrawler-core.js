@@ -1,4 +1,4 @@
-/* Shipcrawler Core v6.4f — Phase-streaming, real-time terminal feed, animated report */
+/* Shipcrawler Core v6.4g — Phase-streaming, real-time terminal feed, animated report */
 const ShipcrawlerCore = (() => {
   let currentMode = 'vessel';
   let currentReport = null;
@@ -55,9 +55,14 @@ const ShipcrawlerCore = (() => {
       });
     });
 
-    // Restore sidebar state + load history
-    var sidebarOpen = localStorage.getItem('shipcrawler-sidebar-open') !== 'false';
-    if (!sidebarOpen) { document.getElementById('sidebar').classList.add('closed'); document.body.classList.add('sidebar-closed'); }
+    // Restore sidebar state + load history — both panels default to closed
+    var sidebarOpen = localStorage.getItem('shipcrawler-sidebar-open') === 'true';
+    if (!sidebarOpen) { document.getElementById('sidebar').classList.add('closed'); document.body.classList.add('sidebar-closed'); document.getElementById('sidebar-toggle').textContent = '▶'; }
+    var rightPanelOpen = localStorage.getItem('shipcrawler-right-panel-open') === 'true';
+    if (!rightPanelOpen) { document.getElementById('right-panel').classList.add('closed'); document.body.classList.add('right-panel-closed'); document.getElementById('right-panel-toggle').textContent = '▶'; }
+    // Ensure overlay hidden on load (panels closed by default)
+    var overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.remove('active');
     loadHistory();
 
     // Live timer tick every second
@@ -565,6 +570,9 @@ const ShipcrawlerCore = (() => {
     document.body.classList.toggle('sidebar-closed', isClosed);
     localStorage.setItem('shipcrawler-sidebar-open', String(!isClosed));
     document.getElementById('sidebar-toggle').textContent = isClosed ? '▶' : '◀';
+    // Toggle mobile overlay
+    var overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.toggle('active', !isClosed);
   }
 
   function saveToHistory(entry) {

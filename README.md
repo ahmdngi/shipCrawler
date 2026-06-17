@@ -1,4 +1,4 @@
-# Shipcrawler v6.4f — AI-Powered Maritime OSINT Platform
+# Shipcrawler v6.4g — AI-Powered Maritime OSINT Platform
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
@@ -418,6 +418,15 @@ hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 ---
 
 ## Changelog
+
+### v6.4g
+- **Panels collapsed by default** — sidebar and right panel start closed on every fresh load; state persists via localStorage
+- **Right panel localStorage** — toggle state now persists like the sidebar (was missing before)
+- **PWA support** — manifest.json, service worker (cache-first static assets), 192×192 & 512×512 PNG icons
+- **Apple PWA meta** — `apple-mobile-web-app-capable` and `apple-mobile-web-app-title` tags
+- **Mobile responsive** — tablet (<1024px) and phone (<768px) breakpoints: zero body margins, panels as sliding overlays, single-column grids, scaled hero/terminal/nav
+- **Mobile FABs** — floating action buttons bottom-left/right on phone for opening collapsed panels
+- **Templates auto-reload** — `TEMPLATES_AUTO_RELOAD` enabled in app.py for dev
 
 ### v6.4f
 - **Color theme system** — three presets (Dark, Classic, Oversight) with switcher in nav bar, replacing old color picker modal
