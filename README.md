@@ -424,6 +424,7 @@ hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 - **Oversight theme** — light beige background with green accents, JetBrains Mono + Inter fonts
 - **Classic theme** — dark with green accent palette
 - **Live theme switching** — no reload needed; all panels, terminal, and modal adopt theme instantly
+- **SEO & meta enrichment** — Open Graph, Twitter Card, JSON-LD structured data, description, keywords, author, canonical URL, theme-color
 
 ### v6.4e
 - **Queued state** — SSE stream now emits `queued` event when task is in pending queue. Frontend shows position (e.g. "In queue (position 2 of 3)")
