@@ -1,4 +1,4 @@
-/* Shipcrawler Core v5 — Phase-streaming, real-time terminal feed, animated report */
+/* Shipcrawler Core v6.4f — Phase-streaming, real-time terminal feed, animated report */
 const ShipcrawlerCore = (() => {
   let currentMode = 'vessel';
   let currentReport = null;
