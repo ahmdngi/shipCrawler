@@ -167,6 +167,7 @@ const ShipcrawlerCore = (() => {
   }
 
   // ── SSE Callbacks ──────────────────────────────────────────
+  var _toolCounts = {};
   function onPhaseStart(data) {
     // Remove queued indicator once work starts
     if (_queuedLine) { _queuedLine.remove(); _queuedLine = null; }
@@ -188,6 +189,7 @@ const ShipcrawlerCore = (() => {
       var tool = 'AGENT';
       var m = line.match(/\[Tool:\s*(\w+)\]/);
       if (m) tool = m[1].toUpperCase();
+      _toolCounts[tool] = (_toolCounts[tool] || 0) + 1;
       var toolColor = toolColorMap(tool);
       lineEl.innerHTML = '<span class="phase-badge" style="background-color:' + toolColor + '">' + tool + '</span>' +
         '<span class="phase-content">' + escapeHtml(line) + '</span>';
@@ -257,7 +259,32 @@ const ShipcrawlerCore = (() => {
       var sp = id('summary-phases'); if (sp) sp.textContent = phaseCount;
       var sd = id('summary-duration'); if (sd) sd.textContent = data.duration_total ? Math.round(data.duration_total / 60) + 'm' : '?';
       var sf = id('summary-files'); if (sf) sf.textContent = (data.files || []).length;
+      renderToolCounts();
     }
+  }
+
+  function renderToolCounts() {
+    var el = id('summary-tools');
+    if (!el) return;
+    var total = Object.values(_toolCounts).reduce(function(a, b) { return a + b; }, 0);
+    if (total === 0) { el.textContent = '—'; return; }
+    // Group similar tools
+    var groups = { 'SEARCH': 0, 'SHODAN': 0, 'TERMINAL': 0, 'BROWSER': 0, 'EQUASIS': 0, 'FILE': 0 };
+    for (var tool in _toolCounts) {
+      var n = _toolCounts[tool];
+      if (/WEB_SEARCH|WEB_EXTRACT/.test(tool)) groups['SEARCH'] += n;
+      else if (/SHODAN/.test(tool)) groups['SHODAN'] += n;
+      else if (/BASH|TERMINAL/.test(tool)) groups['TERMINAL'] += n;
+      else if (/BROWSER/.test(tool)) groups['BROWSER'] += n;
+      else if (/EQUASIS/.test(tool)) groups['EQUASIS'] += n;
+      else if (/READ|WRITE/.test(tool)) groups['FILE'] += n;
+      else groups['OTHER'] = (groups['OTHER'] || 0) + n;
+    }
+    var parts = [];
+    for (var g in groups) {
+      if (groups[g] > 0) parts.push(g.toLowerCase() + ':' + groups[g]);
+    }
+    el.textContent = parts.join(' · ');
   }
 
   function updateSummaryBar(data) {
@@ -318,6 +345,7 @@ const ShipcrawlerCore = (() => {
     if (els.targetDisp) els.targetDisp.textContent = query;
     _currentQuery = query;
     phaseCount = 0;
+    _toolCounts = {};
     showFeed();
 
     try {

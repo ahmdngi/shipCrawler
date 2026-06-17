@@ -427,6 +427,7 @@ hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 - **Mobile responsive** — tablet (<1024px) and phone (<768px) breakpoints: zero body margins, panels as sliding overlays, single-column grids, scaled hero/terminal/nav
 - **Mobile FABs** — floating action buttons bottom-left/right on phone for opening collapsed panels
 - **Templates auto-reload** — `TEMPLATES_AUTO_RELOAD` enabled in app.py for dev
+- **Tool call breakdown** — summary bar shows per-category tool usage (search:5 · shodan:3 · terminal:12) on investigation completion
 
 ### v6.4f
 - **Color theme system** — three presets (Dark, Classic, Oversight) with switcher in nav bar, replacing old color picker modal
