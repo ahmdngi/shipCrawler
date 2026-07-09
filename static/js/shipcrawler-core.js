@@ -227,8 +227,9 @@ const ShipcrawlerCore = (() => {
       'EQUASIS': '#4895ef', 'EQUASIS-CLI': '#4895ef',
       'SHODAN': '#f72585',
       'BROWSER_NAVIGATE': '#9b5de5', 'BROWSER': '#9b5de5',
-      'BASH': '#ff9e00', 'TERMINAL': '#ff9e00',
       'READ': '#00bbf9', 'WRITE': '#00bbf9',
+      'SEARCH': '#06d6a0', 'EXTRACT': '#06d6a0',
+      'CODE': '#e63946', 'TODO': '#ff9e00',
     };
     return map[tool] || '#6c8a94';
   }
@@ -285,6 +286,22 @@ const ShipcrawlerCore = (() => {
       if (groups[g] > 0) parts.push(g.toLowerCase() + ':' + groups[g]);
     }
     el.textContent = parts.join(' · ');
+
+    // Sources — count unique tool categories with hits
+    var srcEl = id('summary-sources');
+    if (srcEl) {
+      var active = 0;
+      for (var g in groups) { if (groups[g] > 0) active++; }
+      srcEl.textContent = active;
+    }
+
+    // Searches — web_search + web_extract
+    var srchEl = id('summary-searches');
+    if (srchEl) srchEl.textContent = groups['SEARCH'] || 0;
+
+    // Shodan queries
+    var shodanEl = id('summary-shodan');
+    if (shodanEl) shodanEl.textContent = groups['SHODAN'] || 0;
   }
 
   function updateSummaryBar(data) {

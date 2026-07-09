@@ -150,8 +150,22 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
                 continue
 
             # Classify the line
-            if "● [Tool:" in stripped:
-                # Tool call start — extract tool name
+            # New Hermes format: ┊ 🔍 search ... or ┊ 🐍 exec ...
+            emoji_tool = re.match(r"^┊\s*([\U0001F300-\U0001FAFF\u2600-\u26FF\u2700-\u27BF])\s+(\w+)", stripped)
+            if emoji_tool and emoji_tool.group(2) != "preparing":
+                emoji_map = {
+                    "\U0001F50D": "SEARCH",     # 🔍
+                    "\U0001F4C4": "EXTRACT",    # 📄
+                    "\U0001F40D": "CODE",       # 🐍
+                    "\U0001F4BB": "BASH",       # 💻
+                    "\U0001F4CB": "TODO",       # 📋
+                    "\U0001F4AC": "CHAT",       # 💬
+                }
+                mapped_tool = emoji_map.get(emoji_tool.group(1), emoji_tool.group(2).upper())
+                current_tool = mapped_tool
+                worker_phase_output(task_id, 0, stripped, "tool_start")
+            elif "● [Tool:" in stripped:
+                # Legacy format: ● [Tool: name]
                 tool_match = re.search(r"● \[Tool:\s*(\w+)\]", stripped)
                 current_tool = tool_match.group(1).lower() if tool_match else "agent"
                 worker_phase_output(task_id, 0, stripped, "tool_start")
