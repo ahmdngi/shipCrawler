@@ -7,4 +7,8 @@ data/
 queue/
 .hermes/
 .claude/
+REFACTOR_SPEC.md
+V4_PLAN.md
+start-refactor.sh
+wmn-data.json
 
