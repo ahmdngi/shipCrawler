@@ -182,6 +182,7 @@ def init_routes(app):
                     with open(df) as f:
                         dd = json.load(f)
                     if dd.get("report_dir") == str(report_dir):
+                        done_data["mode"] = dd.get("mode", mode)
                         done_data["duration_total"] = dd.get("duration_total")
                         done_data["report_files_list"] = dd.get("report_files", [])
                         break
@@ -256,6 +257,19 @@ def init_routes(app):
     def get_history():
         """List all available report directories with metadata."""
         from worker import REPORT_BASE
+        # Build a lookup: report_dir -> mode from done files
+        done_mode = {}
+        done_dir = QUEUE_DIR / "done"
+        if done_dir.exists():
+            for df in done_dir.glob("*.json"):
+                try:
+                    with open(df) as f:
+                        dd = json.load(f)
+                    rd = dd.get("report_dir")
+                    if rd:
+                        done_mode[rd] = dd.get("mode", "vessel")
+                except (json.JSONDecodeError, OSError):
+                    continue
         reports = []
         for d in sorted(REPORT_BASE.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
             if not d.is_dir() or not d.name.endswith("-report"):
@@ -267,7 +281,7 @@ def init_routes(app):
             reports.append({
                 "task_id": d.name,
                 "name": name.title(),
-                "mode": "vessel",
+                "mode": done_mode.get(str(d), "vessel"),
                 "timestamp": int(os.path.getmtime(d) * 1000),
             })
         return jsonify(reports)

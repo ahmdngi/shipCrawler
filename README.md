@@ -1,4 +1,4 @@
-# Shipcrawler v6.4g — AI-Powered Maritime OSINT Platform
+# Shipcrawler v6.4h — AI-Powered Maritime OSINT Platform
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 

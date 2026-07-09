@@ -33,6 +33,9 @@ POLL_INTERVAL = 5
 
 
 def sanitize_name(name):
+    import unicodedata
+    # Strip diacritics: Pärtel → Partel, Keskküla → Keskkula
+    name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('ascii')
     name = re.sub(r'^(MMSI|IMO)\s*[:]?\s*', '', name, flags=re.IGNORECASE).strip()
     name = re.sub(r'[^\w\s-]', '', name).strip()
     return name or "target"
