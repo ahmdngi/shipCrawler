@@ -277,16 +277,16 @@ const ShipcrawlerCore = (() => {
     }
   }
 
-  function renderToolCounts() {
-    // Tool call counts no longer tracked live — show placeholder
+  function renderToolCounts(data) {
+    // Render tool call stats from report data
     var el = id('summary-tools');
-    if (el) el.textContent = '—';
+    if (el) el.textContent = data && data.stats ? data.stats.tool_calls || 0 : '—';
     var srcEl = id('summary-sources');
-    if (srcEl) srcEl.textContent = '—';
+    if (srcEl) srcEl.textContent = data && data.stats ? data.stats.sources || 0 : '—';
     var srchEl = id('summary-searches');
-    if (srchEl) srchEl.textContent = '—';
+    if (srchEl) srchEl.textContent = data && data.stats ? data.stats.searches || 0 : '—';
     var shodanEl = id('summary-shodan');
-    if (shodanEl) shodanEl.textContent = '—';
+    if (shodanEl) shodanEl.textContent = data && data.stats ? data.stats.shodan || 0 : '—';
   }
 
   function updateSummaryBar(data) {
@@ -725,6 +725,7 @@ const ShipcrawlerCore = (() => {
           displayReport(data);
           // Update summary bar with history data
           updateSummaryBar(data);
+          renderToolCounts(data);
           var stored = localStorage.getItem('shipcrawler-history');
           renderHistory(stored ? JSON.parse(stored) : []);
           populateRightPanel(data);

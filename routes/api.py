@@ -244,6 +244,7 @@ def init_routes(app):
             "phase_files": list(phase_data.keys()),
             "phase_contents": phase_data,
             "report_files": report_files,
+            "stats": done_data.get("stats"),
         }
         if "error" not in structured:
             response.update(structured)

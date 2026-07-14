@@ -145,6 +145,12 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
     else:
         wp.structured_output(task_id, 0, "status", "🔍", "Searching identity and academic sources...")
 
+    # Counters for summary stats
+    tool_calls = 0
+    searches = 0
+    source_fetches = 0
+    shodan_hits = 0
+
     cmd = [
         HERMES_BIN, "chat",
         "-q", prompt,
@@ -181,6 +187,17 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
             event = sf.process_output_line(stripped)
             if event is None:
                 continue
+
+            # Count tool calls for summary stats
+            tool_calls += 1
+            msg_lower = (event.get("message") or "").lower()
+            icon = event.get("icon", "")
+            if "search" in msg_lower or icon in ("🔍", "🔎"):
+                searches += 1
+            if icon in ("📄", "📑", "🌐"):
+                source_fetches += 1
+            if "shodan" in msg_lower:
+                shodan_hits += 1
 
             # Write as structured output event
             wp.structured_output(
@@ -266,6 +283,12 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         "report_files": [str(f) for f in md_files],
         "duration_total": round(total_duration, 1),
         "hermes_exit": exit_code,
+        "stats": {
+            "tool_calls": tool_calls,
+            "searches": searches,
+            "sources": source_fetches,
+            "shodan": shodan_hits,
+        },
     }
 
 
