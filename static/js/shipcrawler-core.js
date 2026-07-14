@@ -670,7 +670,7 @@ const ShipcrawlerCore = (() => {
       var icon = t.mode === 'person' ? '👤' : '🚢';
       var active = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
       html += '<div class="sidebar-item' + active + '" data-task-id="' + t.task_id + '">' +
-        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" title="Delete report">✕</button>' +
+        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" title="Delete report">🗑️</button>' +
         '<div class="sidebar-item-name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
         '<div class="sidebar-item-meta"><span>' + icon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div></div>';
     }

@@ -758,12 +758,12 @@ footer {
   position:absolute; top:0.3rem; right:0.3rem;
   width:1.2rem; height:1.2rem; padding:0;
   border:none; border-radius:3px; cursor:pointer;
-  font-size:0.6rem; line-height:1.2rem; text-align:center;
+  font-size:0.72rem; line-height:1.2rem; text-align:center;
   background:transparent; color:var(--color-ink-4);
   opacity:0; transition:opacity 0.15s, color 0.15s;
 }
 .sidebar-item:hover .sidebar-delete { opacity:1; }
-.sidebar-delete:hover { color:var(--color-red,#e34); }
+.sidebar-delete:hover { color:var(--color-red,#e34) !important; }
 .sidebar-empty {
   padding:1rem; text-align:center; color:var(--color-ink-3);
   font-size:0.78rem;
