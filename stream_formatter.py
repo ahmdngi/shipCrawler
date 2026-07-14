@@ -41,6 +41,24 @@ PROMPT_KEYWORDS = [
     "CRITICAL: Write all report",
     "Be thorough — use multiple",
     "Research context:",
+    "Identity & Academic Sources",
+    "Research Impact Analysis",
+    "Social & Digital Footprint",
+    "Professional Network & Timeline",
+    "Targeting Scenarios",
+    "analyst-report.md (full",
+    "red-team-playbook.md (2-3",
+    "indicators-and-detection.md",
+    "Elastic rules, Zeek scripts",
+    "1. analyst-report.md",
+    "2. red-team-playbook.md",
+    "3. indicators-and-detection.md",
+    "confidence assessment per category",
+    "vault/osint-reports",
+    "<name>-report",
+    # Fragments from the name in quotes in prompt
+    '\\"Nasr',
+    '\\"',
 ]
 
 TOOL_PREPARE_RE = re.compile(r"┊\s*.\s*preparing\s+\w+")

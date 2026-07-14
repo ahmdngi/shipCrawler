@@ -50,13 +50,13 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
     """Build a single comprehensive prompt using the shipcrawler skill."""
 
     def p(text):
-        """Strip 'agent' branding references."""
+        """Strip 'agent' branding references from text only (not paths)."""
         return text.replace("Hermes", "AI agent").replace("hermes", "AI agent").replace("HERMES", "AI")
 
     base_context = p(f"Research context: {context}") if context else ""
 
     if mode == "person":
-        return p(
+        content = p(
             f"Using the shipcrawler OSINT framework, research the person \"{name}\".\n\n"
             f"{base_context}\n\n"
             f"Execute ALL phases of the people OSINT methodology:\n"
@@ -65,14 +65,18 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"3. Social & Digital Footprint — social media, crt.sh, breach data\n"
             f"4. Professional Network & Timeline — career history, education, geography\n"
             f"5. Targeting Scenarios — 2-3 attack vectors with difficulty, cost, detection probability\n\n"
-            f"Generate a COMPREHENSIVE report with the following files saved to {REPORT_BASE}/<name>-report/:\n"
+            f"Generate a COMPREHENSIVE report with the following files saved to "
+            f"{REPORT_BASE}/<name>-report/:\n"
             f"- analyst-report.md (full narrative with identity, career, research, digital footprint, confidence)\n"
             f"- red-team-playbook.md (2-3 attack vectors with equipment, steps, detection points)\n"
             f"- indicators-and-detection.md (Elastic rules, Zeek scripts, runbook)\n\n"
             f"Be thorough — use multiple sources, cross-reference, and provide confidence levels per finding."
         )
+        # Restore the path if p() mangled it
+        content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
+        return content
     else:
-        return p(
+        content = p(
             f"Using the shipcrawler OSINT framework, research the vessel \"{name}\".\n\n"
             f"{base_context}\n\n"
             f"Execute ALL phases of the vessel OSINT methodology:\n"
@@ -98,6 +102,8 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
             f"and report zero findings explicitly (it's a finding). Provide confidence levels."
         )
+        content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
+        return content
 
 
 def worker_phase_output(task_id, phase, line, line_type="output"):
