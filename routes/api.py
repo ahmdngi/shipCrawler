@@ -163,8 +163,20 @@ def init_routes(app):
         dir_name = clean_for_filename(safe) + "-report"
         report_dir = REPORT_BASE / dir_name
 
+        # Fallback: sanitize_name strips diacritics (ä→a), but older reports
+        # may have been created with them preserved. Try glob.
         if not report_dir.exists():
-            return jsonify({"error": f"no report found for '{name}'"}), 404
+            first_word = safe.split()[0].lower() if safe.split() else safe.lower()
+            matches = list(REPORT_BASE.glob(f"{first_word}*"))
+            # Filter to only dirs ending with -report
+            matches = [m for m in matches if m.is_dir() and m.name.endswith("-report")]
+            if len(matches) == 1:
+                report_dir = matches[0]
+            elif len(matches) > 1:
+                # Pick the longest match (most specific)
+                report_dir = max(matches, key=lambda p: len(p.name))
+            else:
+                return jsonify({"error": f"no report found for '{name}'"}), 404
 
         # Reconstruct minimal done_data
         mode = "vessel"
