@@ -46,8 +46,12 @@ def clean_for_filename(name):
     return name.lower().replace(" ", "-")
 
 
-def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
-    """Build a single comprehensive prompt using the shipcrawler skill."""
+def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str = "") -> str:
+    """Build a single comprehensive prompt using the shipcrawler skill.
+
+    dir_suffix: optional suffix for the report directory (e.g. "-2026-07-15").
+    """
+    date_part = dir_suffix  # e.g. "-2026-07-15"
 
     def p(text):
         """Strip 'agent' branding references from text only (not paths)."""
@@ -66,7 +70,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"4. Professional Network & Timeline — career history, education, geography\n"
             f"5. Targeting Scenarios — 2-3 attack vectors with difficulty, cost, detection probability\n\n"
             f"Generate a COMPREHENSIVE report with the following files saved to "
-            f"{REPORT_BASE}/<name>-report/:\n"
+            f"{REPORT_BASE}/<name>{date_part}-report/:\n"
             f"- analyst-report.md (full narrative with identity, career, research, digital footprint, confidence)\n"
             f"- red-team-playbook.md (2-3 attack vectors with equipment, steps, detection points)\n"
             f"- indicators-and-detection.md (Elastic rules, Zeek scripts, runbook)\n\n"
@@ -101,7 +105,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
             f"and report zero findings explicitly (it's a finding). Provide confidence levels.\n\n"
-            f"Save all report files to {REPORT_BASE}/<name>-report/"
+            f"Save all report files to {REPORT_BASE}/<name>{date_part}-report/"
         )
         content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
         return content
@@ -114,12 +118,17 @@ def worker_phase_output(task_id, phase, line, line_type="output"):
 
 def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
     """Run a single comprehensive Hermes shipcrawler session with real-time streaming."""
-    prompt = build_shipcrawler_prompt(name, mode, context)
+    from datetime import date
+
+    today = date.today().isoformat()  # e.g. "2026-07-15"
+    dir_suffix = f"-{today}"
 
     safe_name = sanitize_name(name)
-    dir_name = clean_for_filename(safe_name) + "-report"
+    dir_name = clean_for_filename(safe_name) + dir_suffix + "-report"
     report_dir = REPORT_BASE / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
+
+    prompt = build_shipcrawler_prompt(name, mode, context, dir_suffix=dir_suffix)
 
     start_total = time.time()
     output_lines = []
