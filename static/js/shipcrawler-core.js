@@ -670,7 +670,7 @@ const ShipcrawlerCore = (() => {
       var icon = t.mode === 'person' ? '👤' : '🚢';
       var active = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
       html += '<div class="sidebar-item' + active + '" data-task-id="' + t.task_id + '">' +
-        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" title="Delete report">🗑️</button>' +
+        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" data-name="' + escapeHtml(t.name || 'Unknown') + '" title="Delete report">🗑️</button>' +
         '<div class="sidebar-item-name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
         '<div class="sidebar-item-meta"><span>' + icon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div></div>';
     }
@@ -688,7 +688,8 @@ const ShipcrawlerCore = (() => {
       dels[i].addEventListener('click', function(e) {
         e.stopPropagation();
         var taskId = this.dataset.taskId;
-        if (!confirm('Delete this report?')) return;
+        var name = this.dataset.name || taskId;
+        if (!confirm('Delete report "' + name + '"?')) return;
         fetch('/api/report/' + taskId, { method: 'DELETE' })
           .then(function(r) { return r.json(); })
           .then(function(data) {
