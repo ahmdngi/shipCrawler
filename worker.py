@@ -199,8 +199,13 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
 
     # Copy agent-created report files into the worker's report dir
     # Agent may have saved clean files to its own directory (e.g., "rina-report")
-    first_word = safe_name.split()[0].lower() if safe_name.split() else safe_name.lower()
-    agent_dirs = list(REPORT_BASE.glob(f"{first_word}*"))
+    # Use the full name to avoid false matches (e.g. "ahmed" matches "ahmed-bassiouny-*")
+    name_parts = safe_name.lower().split()
+    if len(name_parts) > 1:
+        glob_pattern = name_parts[0] + "*" + name_parts[-1] + "*"
+    else:
+        glob_pattern = name_parts[0] + "*" if name_parts else safe_name.lower() + "*"
+    agent_dirs = list(REPORT_BASE.glob(glob_pattern))
     for ad in agent_dirs:
         if ad == report_dir:
             continue
