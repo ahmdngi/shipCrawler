@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""API routes for Shipcrawler v4 — queue-based, phase-streaming, Hermes-powered."""
+"""API routes for Shipcrawler v4 — queue-based, structured streaming, agent-powered."""
 
 import json
 import os

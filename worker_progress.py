@@ -47,6 +47,18 @@ def phase_output(task_id: str, phase: int, line: str):
     write_event(task_id, "phase_output", phase=phase, line=line)
 
 
+def structured_output(task_id: str, phase: int, event_subtype: str, icon: str, message: str):
+    """Write a clean, structured event (status, data_point, finding, etc.)
+    instead of raw Hermes output."""
+    write_event(
+        task_id, "structured_output",
+        phase=phase,
+        structured_type=event_subtype,
+        icon=icon,
+        message=message[:500],
+    )
+
+
 def phase_complete(task_id: str, phase: int, name: str, duration: float, summary: str = "", findings: dict = None):
     write_event(
         task_id, "phase_complete",

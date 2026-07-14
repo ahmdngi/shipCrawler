@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Shipcrawler v4 Phase Worker — runs sequential Hermes agent phases,
-emits progress events to the progress log for real-time SSE streaming.
+Shipcrawler v4 Phase Worker — runs sequential agent investigation phases,
+emits structured progress events to the progress log for real-time SSE streaming.
 
 Flow:
   queue/pending/<task_id>.json → worker processes phases one by one
-  Each phase: run hermes chat -q → write progress to queue/progress/<task_id>.log
+  Each phase: run prompt with skill → write progress to queue/progress/<task_id>.log
   Frontend reads progress via SSE endpoint
 """
 
@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import worker_progress as wp
+import stream_formatter as sf
 
 BASE_DIR = Path(__file__).parent
 QUEUE_DIR = BASE_DIR / "queue"
@@ -46,11 +47,16 @@ def clean_for_filename(name):
 
 
 def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
-    """Build a single comprehensive Hermes prompt using the full shipcrawler skill."""
-    base_context = f"Research context: {context}" if context else ""
+    """Build a single comprehensive prompt using the shipcrawler skill."""
+
+    def p(text):
+        """Strip 'agent' branding references."""
+        return text.replace("Hermes", "AI agent").replace("hermes", "AI agent").replace("HERMES", "AI")
+
+    base_context = p(f"Research context: {context}") if context else ""
 
     if mode == "person":
-        return (
+        return p(
             f"Using the shipcrawler OSINT framework, research the person \"{name}\".\n\n"
             f"{base_context}\n\n"
             f"Execute ALL phases of the people OSINT methodology:\n"
@@ -66,7 +72,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"Be thorough — use multiple sources, cross-reference, and provide confidence levels per finding."
         )
     else:
-        return (
+        return p(
             f"Using the shipcrawler OSINT framework, research the vessel \"{name}\".\n\n"
             f"{base_context}\n\n"
             f"Execute ALL phases of the vessel OSINT methodology:\n"
@@ -112,17 +118,16 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
     output_lines = []
     current_tool = ""
 
-    wp.phase_start(task_id, 0, "AI Agent Researching")
+    wp.phase_start(task_id, 0, "Investigating")
     print(f"[worker {task_id}] Starting shipcrawler research on \"{name}\" ({mode})...")
     sys.stdout.flush()
 
     # Emit filler frames so frontend shows progress immediately
-    worker_phase_output(task_id, 0, "AI agent initializing...", "tool_detail")
-    worker_phase_output(task_id, 0, "Loading OSINT reconnaissance tools...", "tool_detail")
+    wp.structured_output(task_id, 0, "status", "⏳", "Initializing reconnaissance agents...")
     if mode == "vessel":
-        worker_phase_output(task_id, 0, "Starting Phase 0 — vessel identity & Equasis lookup...", "tool_detail")
+        wp.structured_output(task_id, 0, "status", "🔍", "Searching vessel registries and AIS sources...")
     else:
-        worker_phase_output(task_id, 0, "Starting Phase 1 — identity & academic source search...", "tool_detail")
+        wp.structured_output(task_id, 0, "status", "🔍", "Searching identity and academic sources...")
 
     cmd = [
         HERMES_BIN, "chat",
@@ -144,7 +149,7 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
             env={**os.environ, "HOME": os.path.expanduser("~")},
         )
 
-        # Read stdout line by line in real-time
+        # Read stdout line by line in real-time — classify and structure
         for line in iter(proc.stdout.readline, ""):
             stripped = line.rstrip("\n\r")
             output_lines.append(line)
@@ -152,41 +157,18 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
             if not stripped:
                 continue
 
-            # Classify the line
-            # New Hermes format: ┊ 🔍 search ... or ┊ 🐍 exec ...
-            emoji_tool = re.match(r"^┊\s*([\U0001F300-\U0001FAFF\u2600-\u26FF\u2700-\u27BF])\s+(\w+)", stripped)
-            if emoji_tool and emoji_tool.group(2) != "preparing":
-                emoji_map = {
-                    "\U0001F50D": "SEARCH",     # 🔍
-                    "\U0001F4C4": "EXTRACT",    # 📄
-                    "\U0001F40D": "CODE",       # 🐍
-                    "\U0001F4BB": "BASH",       # 💻
-                    "\U0001F4CB": "TODO",       # 📋
-                    "\U0001F4AC": "CHAT",       # 💬
-                }
-                mapped_tool = emoji_map.get(emoji_tool.group(1), emoji_tool.group(2).upper())
-                current_tool = mapped_tool
-                worker_phase_output(task_id, 0, stripped, "tool_start")
-            elif "● [Tool:" in stripped:
-                # Legacy format: ● [Tool: name]
-                tool_match = re.search(r"● \[Tool:\s*(\w+)\]", stripped)
-                current_tool = tool_match.group(1).lower() if tool_match else "agent"
-                worker_phase_output(task_id, 0, stripped, "tool_start")
-            elif "● [Error:" in stripped:
-                worker_phase_output(task_id, 0, stripped, "tool_error")
-            elif stripped.startswith("  ") and current_tool:
-                # Indented line after a tool call — detail line
-                detail = stripped.strip()
-                if detail and not detail.startswith("─") and not detail.startswith("│"):
-                    worker_phase_output(task_id, 0, detail[:300], "tool_detail")
-            elif stripped.startswith("┌─") or stripped.startswith("│") or stripped.startswith("└─") or stripped.startswith("─"):
-                # Thinking block markers — skip box-drawing chars
-                text = stripped.replace("│", "").replace("┌─", "").replace("└─", "").replace("─", "").strip()
-                if text:
-                    worker_phase_output(task_id, 0, text[:300], "thinking")
-            else:
-                # Regular output
-                worker_phase_output(task_id, 0, stripped[:300], "output")
+            # Process through the stream formatter — returns structured event or None
+            event = sf.process_output_line(stripped)
+            if event is None:
+                continue
+
+            # Write as structured output event
+            wp.structured_output(
+                task_id, 0,
+                event_subtype=event["type"],
+                icon=event["icon"],
+                message=event["message"],
+            )
 
         proc.stdout.close()
         proc.wait(timeout=30)

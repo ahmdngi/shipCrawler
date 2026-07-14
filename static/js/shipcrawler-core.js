@@ -167,7 +167,6 @@ const ShipcrawlerCore = (() => {
   }
 
   // ── SSE Callbacks ──────────────────────────────────────────
-  var _toolCounts = {};
   function onPhaseStart(data) {
     // Remove queued indicator once work starts
     if (_queuedLine) { _queuedLine.remove(); _queuedLine = null; }
@@ -175,34 +174,48 @@ const ShipcrawlerCore = (() => {
     addPhaseLine(data, 'start');
     phaseCount++;
   }
+
+  // ── Structured Output (new clean stream) ──────────────────
+  function onStructuredOutput(data) {
+    var eventType = data.structured_type || data.event_type || 'status';
+    var icon = data.icon || '';
+    var message = (data.message || '').trim();
+    if (!message) return;
+    if (!els.feed) return;
+
+    // Remove static $ prompt once real content starts
+    var prompt = els.feedBody && els.feedBody.querySelector('.terminal-prompt');
+    if (prompt) prompt.remove();
+
+    var lineEl = document.createElement('div');
+    lineEl.className = 'phase-line structured-event structured-' + eventType;
+
+    var iconSpan = document.createElement('span');
+    iconSpan.className = 'struct-icon';
+    iconSpan.textContent = icon;
+
+    var msgSpan = document.createElement('span');
+    msgSpan.className = 'struct-message';
+    msgSpan.textContent = message;
+
+    lineEl.appendChild(iconSpan);
+    lineEl.appendChild(msgSpan);
+    els.feedBody.appendChild(lineEl);
+    autoScroll();
+  }
+
+  // ── Legacy raw output (keep for backward compat, deprioritized) ──
   function onPhaseOutput(data) {
     var line = (data.line || '').trim();
     if (!line || line.length <= 3) return;
-    var type = data.line_type || 'output';
     if (!els.feed) return;
 
+    var prompt = els.feedBody && els.feedBody.querySelector('.terminal-prompt');
+    if (prompt) prompt.remove();
+
     var lineEl = document.createElement('div');
-    lineEl.className = 'phase-line phase-' + type;
-
-    if (type === 'tool_start') {
-      // Extract tool name from the line
-      var tool = 'AGENT';
-      var m = line.match(/\[Tool:\s*(\w+)\]/);
-      if (m) tool = m[1].toUpperCase();
-      _toolCounts[tool] = (_toolCounts[tool] || 0) + 1;
-      var toolColor = toolColorMap(tool);
-      lineEl.innerHTML = '<span class="phase-badge" style="background-color:' + toolColor + '">' + tool + '</span>' +
-        '<span class="phase-content">' + escapeHtml(line) + '</span>';
-    } else if (type === 'tool_error') {
-      lineEl.innerHTML = '<span class="phase-badge" style="background-color:#ff5f56">ERROR</span><span class="phase-content" style="color:#ff5f56;">' + escapeHtml(line) + '</span>';
-    } else if (type === 'tool_detail') {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:#22d3ee;font-size:0.72rem;">' + escapeHtml(line) + '</span>';
-    } else if (type === 'thinking') {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="color:#666;font-size:0.7rem;font-style:italic;">' + escapeHtml(line) + '</span>';
-    } else {
-      lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.75rem;">' + escapeHtml(line) + '</span>';
-    }
-
+    lineEl.className = 'phase-line phase-output-legacy';
+    lineEl.innerHTML = '<span class="phase-indent"></span><span class="phase-content" style="font-size:0.72rem;color:#666;">' + escapeHtml(line) + '</span>';
     els.feedBody.appendChild(lineEl);
     autoScroll();
   }
@@ -265,43 +278,15 @@ const ShipcrawlerCore = (() => {
   }
 
   function renderToolCounts() {
+    // Tool call counts no longer tracked live — show placeholder
     var el = id('summary-tools');
-    if (!el) return;
-    var total = Object.values(_toolCounts).reduce(function(a, b) { return a + b; }, 0);
-    if (total === 0) { el.textContent = '—'; return; }
-    // Group similar tools
-    var groups = { 'SEARCH': 0, 'SHODAN': 0, 'TERMINAL': 0, 'BROWSER': 0, 'EQUASIS': 0, 'FILE': 0 };
-    for (var tool in _toolCounts) {
-      var n = _toolCounts[tool];
-      if (/WEB_SEARCH|WEB_EXTRACT/.test(tool)) groups['SEARCH'] += n;
-      else if (/SHODAN/.test(tool)) groups['SHODAN'] += n;
-      else if (/BASH|TERMINAL/.test(tool)) groups['TERMINAL'] += n;
-      else if (/BROWSER/.test(tool)) groups['BROWSER'] += n;
-      else if (/EQUASIS/.test(tool)) groups['EQUASIS'] += n;
-      else if (/READ|WRITE/.test(tool)) groups['FILE'] += n;
-      else groups['OTHER'] = (groups['OTHER'] || 0) + n;
-    }
-    var parts = [];
-    for (var g in groups) {
-      if (groups[g] > 0) parts.push(g.toLowerCase() + ':' + groups[g]);
-    }
-    el.textContent = parts.join(' · ');
-
-    // Sources — count unique tool categories with hits
+    if (el) el.textContent = '—';
     var srcEl = id('summary-sources');
-    if (srcEl) {
-      var active = 0;
-      for (var g in groups) { if (groups[g] > 0) active++; }
-      srcEl.textContent = active;
-    }
-
-    // Searches — web_search + web_extract
+    if (srcEl) srcEl.textContent = '—';
     var srchEl = id('summary-searches');
-    if (srchEl) srchEl.textContent = groups['SEARCH'] || 0;
-
-    // Shodan queries
+    if (srchEl) srchEl.textContent = '—';
     var shodanEl = id('summary-shodan');
-    if (shodanEl) shodanEl.textContent = groups['SHODAN'] || 0;
+    if (shodanEl) shodanEl.textContent = '—';
   }
 
   function updateSummaryBar(data) {
@@ -362,7 +347,6 @@ const ShipcrawlerCore = (() => {
     if (els.targetDisp) els.targetDisp.textContent = query;
     _currentQuery = query;
     phaseCount = 0;
-    _toolCounts = {};
     showFeed();
 
     try {
@@ -387,6 +371,7 @@ const ShipcrawlerCore = (() => {
       // Connect SSE for real-time streaming
       ShipcrawlerSSE.connect(data.task_id, {
         onPhaseStart: onPhaseStart,
+        onStructuredOutput: onStructuredOutput,
         onPhaseOutput: onPhaseOutput,
         onPhaseComplete: onPhaseComplete,
         onPhaseError: onPhaseError,
