@@ -116,7 +116,7 @@ def worker_phase_output(task_id, phase, line, line_type="output"):
     wp.write_event(task_id, "phase_output", phase=phase, line=line[:500], line_type=line_type)
 
 
-def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
+def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str = None, provider: str = None) -> dict:
     """Run a single comprehensive Hermes shipcrawler session with real-time streaming."""
     from datetime import date
 
@@ -154,6 +154,10 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str) -> dict:
         "--max-turns", "60",
         "--source", "tool",
     ]
+    if provider:
+        cmd.extend(["--provider", provider])
+    if model:
+        cmd.extend(["--model", model])
 
     try:
         proc = subprocess.Popen(
@@ -291,7 +295,14 @@ def process_queue():
     print(f"[worker] Processing task {task['task_id']}: {task.get('name', '?')} ({task.get('mode', '?')})")
     sys.stdout.flush()
 
-    result = run_shipcrawler(task["task_id"], task.get("name", ""), task.get("mode", "vessel"), task.get("context", ""))
+    result = run_shipcrawler(
+        task["task_id"],
+        task.get("name", ""),
+        task.get("mode", "vessel"),
+        task.get("context", ""),
+        model=task.get("model"),
+        provider=task.get("provider"),
+    )
 
     done_path = DONE_DIR / task_path.name
     with open(done_path, "w") as f:

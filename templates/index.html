@@ -3,56 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- SEO -->
-<title>Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance &amp; Cybersecurity</title>
-<meta name="description" content="Shipcrawler is an AI-powered maritime OSINT platform that investigates vessel identities, exposed services, vulnerabilities, and operational patterns using autonomous agents. Real-time phase-by-phase streaming in the browser.">
-<meta name="keywords" content="maritime cybersecurity, OSINT, vessel tracking, AIS, Shodan, maritime reconnaissance, ship vulnerability scanning, open source intelligence, AI agent, maritime domain awareness">
-<meta name="author" content="Ahmed Nagi Nasr">
-<meta name="robots" content="index, follow">
-<meta name="theme-color" content="#0a0e17">
-<link rel="canonical" href="https://github.com/ahmdngi/shipcrawler">
-
-<!-- Open Graph -->
-<meta property="og:title" content="Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
-<meta property="og:description" content="AI-powered maritime OSINT platform for vessel identity verification, exposed service discovery, and vulnerability assessment. Real-time agent-driven investigations.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://github.com/ahmdngi/shipcrawler">
-<meta property="og:site_name" content="Shipcrawler">
-<meta property="og:locale" content="en_US">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
-<meta name="twitter:description" content="AI-powered maritime OSINT platform for vessel identity verification, exposed service discovery, and vulnerability assessment.">
-
-<!-- PWA -->
-<link rel="manifest" href="/static/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Shipcrawler">
-
-<!-- JSON-LD Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Shipcrawler",
-  "applicationCategory": "SecurityApplication",
-  "operatingSystem": "Linux",
-  "author": {
-    "@type": "Person",
-    "name": "Ahmed Nagi Nasr"
-  },
-  "description": "AI-powered maritime OSINT platform that investigates vessel identities, exposed services, vulnerabilities, and operational patterns using autonomous AI agents.",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  }
-}
-</script>
-
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='none' stroke='%233aa76d' stroke-width='2'/><ellipse cx='50' cy='50' rx='45' ry='18' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.6'/><ellipse cx='50' cy='50' rx='18' ry='45' fill='none' stroke='%233aa76d' stroke-width='1' opacity='0.4'/><path d='M5 50 Q30 30 50 50 Q70 70 95 50' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.5'/><path d='M5 50 Q30 70 50 50 Q70 30 95 50' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.5'/><circle cx='50' cy='50' r='4' fill='%233aa76d'/></svg>">
+<title>Shipcrawler OSINT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -60,43 +11,15 @@
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/static/sw.js');</script>
 </head>
 <body>
-
-<canvas id="particles-canvas"></canvas>
-
-<!-- ── Sidebar ── -->
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <span class="sidebar-title">📋 History</span>
-    <button class="sidebar-toggle" id="sidebar-toggle" onclick="ShipcrawlerCore.toggleSidebar()">◀</button>
+<!-- ── Theme + Navigation ── -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-logo">⬡ Shipcrawler</span>
+    <span class="topbar-version">v7.1</span>
   </div>
-  <div class="sidebar-list" id="sidebar-list">
-    <div class="sidebar-empty">No searches yet</div>
-  </div>
-</div>
-
-<!-- ── Right Panel (Phase Files) ── -->
-<div class="right-panel" id="right-panel">
-  <div class="right-panel-header">
-    <span class="right-panel-title">📄 Report Files</span>
-    <button class="right-panel-toggle" id="right-panel-toggle" onclick="ShipcrawlerCore.toggleRightPanel()">◀</button>
-  </div>
-  <div class="right-panel-list" id="right-panel-list">
-    <div class="right-panel-empty">No report loaded</div>
-  </div>
-</div>
-
-<!-- ── Overlay for mobile sidebar ── -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="ShipcrawlerCore.toggleSidebar()"></div>
-
-<!-- ── Mobile FABs ── -->
-<button class="fab fab-left" id="fab-sidebar" onclick="ShipcrawlerCore.toggleSidebar()">☰</button>
-<button class="fab fab-right" id="fab-right-panel" onclick="ShipcrawlerCore.toggleRightPanel()">📄</button>
-
-<nav>
-  <a href="/" class="brand">🚢 <span>Shipcrawler</span></a>
-  <div class="nav-links">
-    <a href="https://github.com/ahmednaginasr/shipcrawler" target="_blank">GitHub</a>
-    <div class="theme-switcher">
+  <div class="topbar-right">
+    <span class="theme-label">Theme:</span>
+    <div class="theme-switcher" id="theme-switcher">
       <span class="theme-pill active" data-theme="dark" onclick="ShipcrawlerUI.applyTheme('dark')">Dark</span>
       <span class="theme-pill" data-theme="classic" onclick="ShipcrawlerUI.applyTheme('classic')">Classic</span>
       <span class="theme-pill" data-theme="oversight" onclick="ShipcrawlerUI.applyTheme('oversight')">Oversight</span>
@@ -105,7 +28,7 @@
 </nav>
 
 <section class="hero" id="search-section">
-  <div class="hero-badge"><span class="live-dot"></span> Shipcrawler OSINT v7.0 — Structured Stream</div>
+  <div class="hero-badge"><span class="live-dot"></span> Shipcrawler OSINT v7.1 — Model Selection</div>
   <h1><span class="accent-gradient">OSINT</span> Reconnaissance Terminal</h1>
   <p>Phase-by-phase agentic investigation. Each phase runs sequentially — watch as the AI agent executes each phase in real-time.</p>
 
@@ -121,6 +44,21 @@
       <input type="text" id="search-input" placeholder="e.g. vessel name, MMSI, or person name" autocomplete="nope" spellcheck="false" name="srch_xyz">
       <button id="search-btn" type="button">Search</button>
     </form>
+  </div>
+
+  <div class="search-container" id="model-container" style="margin-top:0.6rem;max-width:600px;display:flex;gap:0.5rem;align-items:center;">
+    <label for="model-select" style="font-size:0.8rem;color:var(--color-ink-3);white-space:nowrap;">🧠 Model:</label>
+    <select id="model-select" style="flex:1;background:var(--color-paper-2);border:1px solid var(--color-ink-3);border-radius:6px;padding:0.45rem 0.6rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-ink-2);outline:none;cursor:pointer;">
+      <option value="deepseek-v4-flash" data-provider="">DeepSeek V4 Flash</option>
+      <option value="deepseek-v4-pro" data-provider="">DeepSeek V4 Pro</option>
+      <option value="claude-sonnet-4-6" data-provider="anthropic">Claude Sonnet 4.6</option>
+      <option value="claude-opus-4-6" data-provider="anthropic">Claude Opus 4.6</option>
+      <option value="claude-haiku-4-5" data-provider="anthropic">Claude Haiku 4.5</option>
+      <option value="claude-sonnet-5" data-provider="anthropic">Claude Sonnet 5</option>
+      <option value="claude-fable-5" data-provider="anthropic">Claude Fable 5</option>
+      <option value="claude-opus-4-8" data-provider="anthropic">Claude Opus 4.8</option>
+      <option value="mlx-community/Meta-Llama-3.1-8B-Instruct-4bit" data-provider="custom:llama-local">Llama 3.1 8B (local)</option>
+    </select>
   </div>
 
   <div class="search-container" id="context-container" style="margin-top:0.6rem;max-width:600px;display:none">
@@ -147,217 +85,73 @@
 <!-- ── Final Summary Bar ── -->
 <div id="final-summary" class="final-summary" style="display:none;">
   <div class="summary-stat"><span class="stat-value" id="summary-phases">0</span><span class="stat-label">Phases Complete</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-duration">0s</span><span class="stat-label">Total Time</span></div>
+  <div class="summary-stat"><span class="stat-value" id="summary-findings">0</span><span class="stat-label">Findings</span></div>
+  <div class="summary-stat"><span class="stat-value" id="summary-duration">0s</span><span class="stat-label">Duration</span></div>
   <div class="summary-stat"><span class="stat-value" id="summary-files">0</span><span class="stat-label">Report Files</span></div>
-  <div class="summary-stat summary-tools"><span class="stat-value" id="summary-tools">—</span><span class="stat-label">Tool Calls</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-sources">—</span><span class="stat-label">Sources</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-searches">—</span><span class="stat-label">Searches</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-shodan">—</span><span class="stat-label">Shodan</span></div>
+  <div class="summary-stat" id="summary-model" style="display:none;"><span class="stat-value" id="summary-model-name">—</span><span class="stat-label">Model</span></div>
 </div>
 
-<!-- ── Report Section ── -->
-<div class="report-section" id="report-section" style="display:none;">
-  <div class="report-header">
-    <div>
-      <div class="ts" id="mode-label">Mode: Vessel OSINT</div>
-      <div class="ts">Report generated: <span id="report-ts"></span></div>
+<!-- ── Middle Section: sidebar + report ── -->
+<div id="main-layout" style="display:none;flex:1;display:flex;overflow:hidden;position:relative;">
+  <!-- Left sidebar: history -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>📋 History</h3>
+      <button class="clear-btn" onclick="clearHistory()" title="Clear history">🗑️</button>
     </div>
-    <div class="report-actions">
-      <button class="primary" onclick="window.print()">🖨️ Print</button>
-      <button onclick="ShipcrawlerCore.exportReport('json')">📦 JSON</button>
+    <div class="sidebar-list" id="sidebar-list">
+      <div class="sidebar-empty">No searches yet</div>
     </div>
-  </div>
+  </aside>
 
-  <!-- Tab Bar -->
-  <div class="tab-bar" id="tab-bar">
-    <button class="tab-btn active" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="technical">Technical</button>
-    <button class="tab-btn" data-tab="red-team">Red Team</button>
-    <button class="tab-btn" data-tab="detection">Detection</button>
-    <button class="tab-btn" data-tab="assessment">Assessment</button>
-  </div>
-
-  <!-- Tab: Overview -->
-  <div class="tab-panel active" id="tab-overview">
-    <div class="card-wrapper">
-      <div class="card" data-card="vessel">
-        <div class="card-title"><span>🚢</span> Vessel Identity</div>
-        <div class="card-grid" id="vessel-fields"></div>
+  <!-- Report content -->
+  <div class="report-section" id="report-section">
+    <div class="report-header">
+      <div class="report-header-left">
+        <h2 id="report-title">Investigation Report</h2>
+        <span id="report-ts" class="report-timestamp"></span>
       </div>
-      <div class="card" data-card="status">
-        <div class="card-title"><span>📍</span> Current Status</div>
-        <div class="card-grid" id="status-fields"></div>
+      <div class="report-header-right">
+        <button class="tab-btn report-tab active" data-tab="report" onclick="switchTab('report')">📄 Report</button>
+        <button class="tab-btn source-tab" data-tab="source" onclick="switchTab('source')">📁 Source</button>
       </div>
     </div>
-
-    <div class="card full-width" data-card="port-calls">
-      <div class="card-title"><span>⚓</span> Port Calls</div>
-      <div id="port-calls-content"></div>
-    </div>
-    <div class="card full-width" data-card="analysis">
-      <div class="card-title"><span>📊</span> Operational Analysis</div>
-      <div id="analysis-content"></div>
-    </div>
-  </div>
-
-  <!-- Tab: Technical -->
-  <div class="tab-panel" id="tab-technical">
-    <div class="card full-width" data-card="shodan">
-      <div class="card-title"><span>🌐</span> Shodan Attack Surface</div>
-      <div id="shodan-content"></div>
-    </div>
-    <div class="card full-width" data-card="vuln">
-      <div class="card-title"><span>🔧</span> Vulnerability Assessment</div>
-      <div id="vuln-content"></div>
-    </div>
-  </div>
-
-  <!-- Tab: Red Team -->
-  <div class="tab-panel" id="tab-red-team">
-    <div class="card full-width" data-card="red-team">
-      <div class="card-title"><span>⚔️</span> Red Team Playbook</div>
-      <div id="red-team-content"></div>
-    </div>
-  </div>
-
-  <!-- Tab: Detection -->
-  <div class="tab-panel" id="tab-detection">
-    <div class="card full-width" data-card="detection">
-      <div class="card-title"><span>🔍</span> Detection Rules & M-SOC Runbook</div>
-      <div id="detection-content"></div>
-    </div>
-  </div>
-
-  <!-- Tab: Assessment -->
-  <div class="tab-panel" id="tab-assessment">
-    <div class="card-wrapper">
-      <div class="card" data-card="confidence">
-        <div class="card-title"><span>🎯</span> Confidence Assessment</div>
-        <div id="confidence-content"></div>
-      </div>
-      <div class="card" data-card="risk">
-        <div class="card-title"><span>⚠️</span> Risk Assessment</div>
-        <div id="risk-content"></div>
+    <!-- Tab content containers -->
+    <div id="report-content" class="tab-content" style="display:block;">
+      <div class="report-metadata" id="report-metadata"></div>
+      <div id="report-body">
+        <div class="report-empty">Run a search to generate a report</div>
       </div>
     </div>
-  </div>
-
-  <!-- Person panels (hidden by default) -->
-  <div id="person-panels" style="display:none">
-    <div class="tab-bar" id="tab-bar-person">
-      <button class="tab-btn active" data-tab="p-overview">Overview</button>
-      <button class="tab-btn" data-tab="p-research">Research</button>
-      <button class="tab-btn" data-tab="p-social-tab">Social</button>
-      <button class="tab-btn" data-tab="p-timeline">Timeline</button>
-      <button class="tab-btn" data-tab="p-vectors">Vectors</button>
-    </div>
-    <div class="tab-panel active" id="tab-p-overview">
-      <div class="card-wrapper">
-        <div class="card" data-card="p-identity">
-          <div class="card-title"><span>👤</span> Person Identity</div>
-          <div class="card-grid" id="person-fields"></div>
-        </div>
-        <div class="card" data-card="p-analysis">
-          <div class="card-title"><span>📊</span> Exposure Analysis</div>
-          <div id="person-analysis-content"></div>
-        </div>
-      </div>
-    </div>
-    <div class="tab-panel" id="tab-p-research">
-      <div class="card full-width" data-card="p-research-impact">
-        <div class="card-title"><span>📈</span> Research Impact</div>
-        <div id="research-impact-content"></div>
-      </div>
-      <div class="card full-width" data-card="p-publications">
-        <div class="card-title"><span>📄</span> Publications</div>
-        <div id="publications-content"></div>
-      </div>
-      <div class="card full-width" data-card="p-coauthors">
-        <div class="card-title"><span>🤝</span> Collaboration Network</div>
-        <div id="coauthors-content"></div>
-      </div>
-    </div>
-    <div class="tab-panel" id="tab-p-social-tab">
-      <div class="card full-width" data-card="p-social">
-        <div class="card-title"><span>📱</span> Social Media & Online Presence</div>
-        <div id="social-content"></div>
-      </div>
-      <div class="card full-width" data-card="p-footprint">
-        <div class="card-title"><span>🕸️</span> Digital Footprint</div>
-        <div id="footprint-content"></div>
-      </div>
-    </div>
-    <div class="tab-panel" id="tab-p-timeline">
-      <div class="card full-width" data-card="p-professional">
-        <div class="card-title"><span>💼</span> Professional History</div>
-        <div id="professional-content"></div>
-      </div>
-      <div class="card full-width" data-card="p-affiliation">
-        <div class="card-title"><span>📅</span> Affiliation Timeline</div>
-        <div id="affiliation-content"></div>
-      </div>
-    </div>
-    <div class="tab-panel" id="tab-p-vectors">
-      <div class="card full-width" data-card="p-targeting">
-        <div class="card-title"><span>🎯</span> Targeting Scenarios</div>
-        <div id="targeting-content"></div>
-      </div>
+    <div id="source-content" class="tab-content" style="display:none;">
+      <p class="feed-label">Conversation Log <span style="color:var(--color-ink-3);font-weight:400;">(all tool calls and output)</span></p>
+      <pre id="raw-output" class="raw-output"></pre>
     </div>
   </div>
 </div>
 
-<footer>Built by Ahmed Nagi Nasr · Shipcrawler v7.0 · AI Agent</footer>
+<!-- ── Right panel (phase files) ── -->
+<div id="right-panel" style="display:none;position:fixed;bottom:0;right:0;width:320px;z-index:200;">
+  <div class="right-panel-header">
+    <span>📄 Report Files</span>
+    <button class="close-btn" onclick="closeRightPanel()">✕</button>
+  </div>
+  <div class="right-panel-list" id="right-panel-list">
+    <div class="right-panel-empty">No report files</div>
+  </div>
+</div>
+
+<!-- ── Tab content for person mode ── -->
+<div id="person-panels" style="display:none;">
+  <div class="tab-panel" id="panels-intro" style="display:none;"><div class="report-empty">Run a person search to populate these panels.</div></div>
+</div>
+
+<footer>Built by Ahmed Nagi Nasr · Shipcrawler v7.1 · AI Agent</footer>
 
 <!-- md-block for markdown rendering -->
 <script type="module" src="https://md-block.verou.me/md-block.js"></script>
 
-
-<script src="/static/js/shipcrawler-sse.js?v=13"></script>
-<script src="/static/js/shipcrawler-core.js?v=22"></script>
-<script src="/static/js/shipcrawler-ui.js?v=12"></script>
-<script>
-(function() {
-  const canvas = document.getElementById('particles-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let w, h, dots;
-  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-  window.addEventListener('resize', resize); resize();
-  const count = 60;
-  dots = Array.from({length: count}, () => ({
-    x: Math.random() * w, y: Math.random() * h,
-    vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
-    r: Math.random() * 1.5 + 0.5,
-  }));
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    for (const d of dots) {
-      d.x += d.vx; d.y += d.vy;
-      if (d.x < 0) d.x = w; if (d.x > w) d.x = 0;
-      if (d.y < 0) d.y = h; if (d.y > h) d.y = 0;
-      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(108,138,148,0.12)'; ctx.fill();
-    }
-    for (let i = 0; i < dots.length; i++) {
-      for (let j = i + 1; j < dots.length; j++) {
-        const dx = dots[i].x - dots[j].x, dy = dots[i].y - dots[j].y, dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 140) {
-          ctx.beginPath(); ctx.moveTo(dots[i].x, dots[i].y); ctx.lineTo(dots[j].x, dots[j].y);
-          ctx.strokeStyle = `rgba(108,138,148,${0.06 * (1 - dist / 140)})`;
-          ctx.lineWidth = 0.5; ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-ShipcrawlerUI.loadTheme();
-ShipcrawlerCore.init();
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="/static/js/globe.js?v=1"></script>
+<script src="/static/js/shipcrawler-sse.js?v=7.1"></script>
+<script src="/static/js/shipcrawler-core.js?v=7.1"></script>
 </body>
 </html>

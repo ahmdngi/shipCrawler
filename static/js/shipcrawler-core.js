@@ -349,16 +349,24 @@ const ShipcrawlerCore = (() => {
     phaseCount = 0;
     showFeed();
 
-    try {
-      var resp = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: query,
-          mode: currentMode,
-          context: els.contextInput ? els.contextInput.value.trim() : '',
-        }),
-      });
+      try {
+        var modelSelect = document.getElementById('model-select');
+        var model = modelSelect ? modelSelect.value : 'deepseek-v4-flash';
+        var provider = modelSelect && modelSelect.options[modelSelect.selectedIndex]
+          ? modelSelect.options[modelSelect.selectedIndex].getAttribute('data-provider') || null
+          : null;
+
+        var resp = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: query,
+            mode: currentMode,
+            context: els.contextInput ? els.contextInput.value.trim() : '',
+            model: model,
+            provider: provider,
+          }),
+        });
 
       if (!resp.ok) {
         var err = await resp.json().catch(function() { return {}; });

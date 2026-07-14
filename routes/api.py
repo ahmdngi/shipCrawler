@@ -48,6 +48,8 @@ def init_routes(app):
             "name": name,
             "mode": mode,
             "context": context,
+            "model": data.get("model"),
+            "provider": data.get("provider"),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
