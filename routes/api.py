@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -290,6 +291,9 @@ def init_routes(app):
             raw = d.name.replace("-report", "")
             # Convert back to a readable name (best effort)
             name = raw.replace("-", " ").strip()
+            # Strip trailing date if present (YYYY-MM-DD from new dated format)
+            name = re.sub(r'\s*\d{4}\s*\d{2}\s*\d{2}\s*$', '', name).strip()
+            # Handle 'mmsi' prefix cleanup
             reports.append({
                 "task_id": d.name,
                 "name": name.title(),
