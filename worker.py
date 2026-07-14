@@ -100,7 +100,8 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str) -> str:
             f"CRITICAL: Write all report files using Python (open().write()) — NEVER use bash heredocs "
             f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
-            f"and report zero findings explicitly (it's a finding). Provide confidence levels."
+            f"and report zero findings explicitly (it's a finding). Provide confidence levels.\n\n"
+            f"Save all report files to {REPORT_BASE}/<name>-report/"
         )
         content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
         return content
