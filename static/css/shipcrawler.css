@@ -734,10 +734,12 @@ footer {
 .sidebar-list::-webkit-scrollbar { width:3px; }
 .sidebar-list::-webkit-scrollbar-thumb { background:var(--color-ink-3); border-radius:2px; }
 .sidebar-item {
+  position:relative;
   padding:0.5rem 0.6rem; margin-bottom:0.3rem;
   border-radius:6px; cursor:pointer;
   transition:background 0.15s;
   border-left:3px solid transparent;
+  padding-right:2rem;
 }
 .sidebar-item:hover { background:var(--color-paper-2); }
 .sidebar-item.active {
@@ -752,6 +754,16 @@ footer {
   font-size:0.65rem; color:var(--color-ink-3);
   display:flex; gap:0.5rem; margin-top:0.15rem;
 }
+.sidebar-delete {
+  position:absolute; top:0.3rem; right:0.3rem;
+  width:1.2rem; height:1.2rem; padding:0;
+  border:none; border-radius:3px; cursor:pointer;
+  font-size:0.6rem; line-height:1.2rem; text-align:center;
+  background:transparent; color:var(--color-ink-4);
+  opacity:0; transition:opacity 0.15s, color 0.15s;
+}
+.sidebar-item:hover .sidebar-delete { opacity:1; }
+.sidebar-delete:hover { color:var(--color-red,#e34); }
 .sidebar-empty {
   padding:1rem; text-align:center; color:var(--color-ink-3);
   font-size:0.78rem;

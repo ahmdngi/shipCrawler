@@ -16,6 +16,7 @@ QUEUE_DIR = BASE_DIR / "queue"
 PENDING_DIR = QUEUE_DIR / "pending"
 RUNNING_DIR = QUEUE_DIR / "running"
 DONE_DIR = QUEUE_DIR / "done"
+PROGRESS_DIR = QUEUE_DIR / "progress"
 
 # Import worker_progress for reading the progress log
 import sys
@@ -303,6 +304,50 @@ def init_routes(app):
                 "timestamp": int(os.path.getmtime(d) * 1000),
             })
         return jsonify(reports)
+
+    @app.route("/api/report/<task_id>", methods=["DELETE"])
+    def delete_report(task_id):
+        """Delete a report by task_id (directory name)."""
+        from worker import REPORT_BASE
+
+        report_dir = REPORT_BASE / task_id
+        if not report_dir.exists():
+            # Try to find the done file matching this dir
+            found = False
+            for df in DONE_DIR.glob("*.json"):
+                try:
+                    with open(df) as f:
+                        dd = json.load(f)
+                    if dd.get("report_dir", "").endswith(task_id):
+                        df.unlink(missing_ok=True)
+                        found = True
+                        break
+                except (json.JSONDecodeError, OSError):
+                    continue
+            if not found:
+                return jsonify({"error": f"report '{task_id}' not found"}), 404
+
+        # Delete report directory
+        import shutil
+        if report_dir.exists():
+            shutil.rmtree(report_dir)
+
+        # Delete done file and progress log
+        for df in DONE_DIR.glob("*.json"):
+            try:
+                with open(df) as f:
+                    dd = json.load(f)
+                if dd.get("report_dir", "").endswith(task_id):
+                    df.unlink(missing_ok=True)
+                    break
+            except (json.JSONDecodeError, OSError):
+                continue
+
+        # Delete progress log if exists
+        log_file = PROGRESS_DIR / f"{task_id}.log"
+        log_file.unlink(missing_ok=True)
+
+        return jsonify({"status": "deleted", "task_id": task_id})
 
     @app.route("/api/health")
     def health():

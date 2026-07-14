@@ -670,13 +670,36 @@ const ShipcrawlerCore = (() => {
       var icon = t.mode === 'person' ? '👤' : '🚢';
       var active = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
       html += '<div class="sidebar-item' + active + '" data-task-id="' + t.task_id + '">' +
+        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" title="Delete report">✕</button>' +
         '<div class="sidebar-item-name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
         '<div class="sidebar-item-meta"><span>' + icon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div></div>';
     }
     list.innerHTML = html;
     var items = list.querySelectorAll('.sidebar-item');
     for (var i = 0; i < items.length; i++) {
-      items[i].addEventListener('click', function() { loadFromHistory(this.dataset.taskId); });
+      items[i].addEventListener('click', function(e) {
+        if (e.target.classList.contains('sidebar-delete')) return;
+        loadFromHistory(this.dataset.taskId);
+      });
+    }
+    // Wire delete buttons
+    var dels = list.querySelectorAll('.sidebar-delete');
+    for (var i = 0; i < dels.length; i++) {
+      dels[i].addEventListener('click', function(e) {
+        e.stopPropagation();
+        var taskId = this.dataset.taskId;
+        if (!confirm('Delete this report?')) return;
+        fetch('/api/report/' + taskId, { method: 'DELETE' })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.status === 'deleted') {
+              loadHistory();
+            } else {
+              alert('Delete failed: ' + (data.error || 'unknown'));
+            }
+          })
+          .catch(function(err) { alert('Delete error: ' + err.message); });
+      });
     }
   }
 
