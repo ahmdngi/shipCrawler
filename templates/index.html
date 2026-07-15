@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- SEO -->
-<title>Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance &amp; Cybersecurity</title>
-<meta name="description" content="Shipcrawler is an AI-powered maritime OSINT platform that investigates vessel identities, exposed services, vulnerabilities, and operational patterns using autonomous agents. Real-time phase-by-phase streaming in the browser.">
+<title>ShipCrawler OSINT Dashboard — Maritime Vessel Reconnaissance &amp; Cybersecurity</title>
+<meta name="description" content="ShipCrawler is an AI-powered maritime OSINT platform that investigates vessel identities, exposed services, vulnerabilities, and operational patterns using autonomous agents. Real-time phase-by-phase streaming in the browser.">
 <meta name="keywords" content="maritime cybersecurity, OSINT, vessel tracking, AIS, Shodan, maritime reconnaissance, ship vulnerability scanning, open source intelligence, AI agent, maritime domain awareness">
 <meta name="author" content="Ahmed Nagi Nasr">
 <meta name="robots" content="index, follow">
@@ -14,29 +14,29 @@
 <link rel="canonical" href="https://github.com/ahmdngi/shipcrawler">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
+<meta property="og:title" content="ShipCrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
 <meta property="og:description" content="AI-powered maritime OSINT platform for vessel identity verification, exposed service discovery, and vulnerability assessment. Real-time agent-driven investigations.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://github.com/ahmdngi/shipcrawler">
-<meta property="og:site_name" content="Shipcrawler">
+<meta property="og:site_name" content="ShipCrawler">
 <meta property="og:locale" content="en_US">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Shipcrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
+<meta name="twitter:title" content="ShipCrawler OSINT Dashboard — Maritime Vessel Reconnaissance">
 <meta name="twitter:description" content="AI-powered maritime OSINT platform for vessel identity verification, exposed service discovery, and vulnerability assessment.">
 
 <!-- PWA -->
 <link rel="manifest" href="/static/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Shipcrawler">
+<meta name="apple-mobile-web-app-title" content="ShipCrawler">
 
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Shipcrawler",
+  "name": "ShipCrawler",
   "applicationCategory": "SecurityApplication",
   "operatingSystem": "Linux",
   "author": {
@@ -93,7 +93,7 @@
 <button class="fab fab-right" id="fab-right-panel" onclick="ShipcrawlerCore.toggleRightPanel()">📄</button>
 
 <nav>
-  <a href="/" class="brand">🚢 <span>Shipcrawler</span></a>
+  <a href="/" class="brand">🚢 <span>ShipCrawler</span></a>
   <div class="nav-links">
     <a href="https://github.com/ahmednaginasr/shipcrawler" target="_blank">GitHub</a>
     <div class="theme-switcher">
@@ -105,8 +105,8 @@
 </nav>
 
 <section class="hero" id="search-section">
-  <div class="hero-badge"><span class="live-dot"></span> Shipcrawler OSINT v7.1 — Model Selection</div>
-  <h1><span class="accent-gradient">OSINT</span> Reconnaissance Terminal</h1>
+  <div class="hero-badge"><span class="live-dot"></span> ShipCrawler OSINT v7.2</div>
+  <h1><span class="accent-gradient">Agentic</span> OSINT Terminal</h1>
   <p>Phase-by-phase agentic investigation. Each phase runs sequentially — watch as the AI agent executes each phase in real-time.</p>
 
   <div class="mode-toggle" id="mode-toggle">
@@ -161,13 +161,14 @@
 
 <!-- ── Final Summary Bar ── -->
 <div id="final-summary" class="final-summary" style="display:none;">
-  <div class="summary-stat"><span class="stat-value" id="summary-phases">0</span><span class="stat-label">Phases Complete</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-duration">0s</span><span class="stat-label">Total Time</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-files">0</span><span class="stat-label">Report Files</span></div>
-  <div class="summary-stat summary-tools"><span class="stat-value" id="summary-tools">—</span><span class="stat-label">Tool Calls</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-sources">—</span><span class="stat-label">Sources</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-searches">—</span><span class="stat-label">Searches</span></div>
-  <div class="summary-stat"><span class="stat-value" id="summary-shodan">—</span><span class="stat-label">Shodan</span></div>
+  <div class="summary-stat"><span class="stat-icon">🧩</span><span class="stat-value" id="summary-phases">0</span><span class="stat-label">Phases</span></div>
+  <div class="summary-stat"><span class="stat-icon">⏱</span><span class="stat-value" id="summary-duration">0s</span><span class="stat-label">Duration</span></div>
+  <div class="summary-stat"><span class="stat-icon">📄</span><span class="stat-value" id="summary-files">0</span><span class="stat-label">Reports</span></div>
+  <div class="summary-stat"><span class="stat-icon">⚙️</span><span class="stat-value" id="summary-tools">—</span><span class="stat-label">Tool Calls</span></div>
+  <div class="summary-stat"><span class="stat-icon">🌐</span><span class="stat-value" id="summary-sources">—</span><span class="stat-label">Sources</span></div>
+  <div class="summary-stat"><span class="stat-icon">🔍</span><span class="stat-value" id="summary-searches">—</span><span class="stat-label">Searches</span></div>
+  <div class="summary-stat"><span class="stat-icon">🛰️</span><span class="stat-value" id="summary-shodan">—</span><span class="stat-label">Shodan</span></div>
+  <div class="summary-stat"><span class="stat-icon">🧠</span><span class="stat-value" id="summary-model">—</span><span class="stat-label">Model</span></div>
 </div>
 
 <!-- ── Report Section ── -->
@@ -321,7 +322,7 @@
   </div>
 </div>
 
-<footer>Built by Ahmed Nagi Nasr · Shipcrawler v7.1 · AI Agent</footer>
+<footer>Built by Ahmed Nagi Nasr · ShipCrawler v7.2 · AI Agent</footer>
 
 <!-- md-block for markdown rendering -->
 <script type="module" src="https://md-block.verou.me/md-block.js"></script>

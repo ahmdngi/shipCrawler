@@ -407,30 +407,31 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
 /* ─── Final Summary Bar ─────────────────────────────────── */
 .final-summary {
   position:relative; z-index:1;
-  max-width:720px; margin:1.5rem auto;
-  display:flex; justify-content:center; gap:2rem;
-  flex-wrap:wrap;
-  padding:1rem 1.5rem;
+  max-width:100%; margin:1.5rem auto;
+  display:flex; justify-content:center; gap:0.75rem;
+  flex-wrap:nowrap;
+  padding:0.6rem 0.8rem;
   background:var(--color-paper-3);
   border:1px solid var(--color-ink-3);
   border-radius:8px;
   animation:fadeInUp 0.5s ease;
+  overflow-x:auto;
 }
 .summary-stat {
   text-align:center;
   display:flex; flex-direction:column; align-items:center;
+  gap:0.1rem;
+  min-width:0; flex-shrink:1;
+}
+.stat-icon {
+  font-size:0.85rem; line-height:1; opacity:0.7;
 }
 .stat-value {
-  font-size:1.4rem; font-weight:bold; color:var(--color-green);
-}
-#summary-tools {
-  font-size:0.82rem; font-weight:normal; color:var(--color-ink);
-  font-family:'JetBrains Mono',monospace;
-  line-height:1.4;
+  font-size:1.1rem; font-weight:bold; color:var(--color-green);
 }
 .stat-label {
-  font-size:0.72rem; color:var(--color-ink-2);
-  text-transform:uppercase; letter-spacing:0.05em;
+  font-size:0.65rem; color:var(--color-ink-2);
+  text-transform:uppercase; letter-spacing:0.04em;
 }
 
 /* ─── Tab Bar ─────────────────────────────────────────────── */

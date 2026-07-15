@@ -46,7 +46,7 @@ def clean_for_filename(name):
     return name.lower().replace(" ", "-")
 
 
-def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str = "") -> str:
+def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str = "", report_dir: str = "") -> str:
     """Build a single comprehensive prompt using the shipcrawler skill.
 
     dir_suffix: optional suffix for the report directory (e.g. "-2026-07-15").
@@ -105,7 +105,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
             f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
             f"and report zero findings explicitly (it's a finding). Provide confidence levels.\n\n"
-            f"Save all report files to {REPORT_BASE}/<name>{date_part}-report/"
+            f"IMPORTANT: Save ALL 3 report files to the directory: {report_dir}/"
         )
         content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
         return content
@@ -128,7 +128,7 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
     report_dir = REPORT_BASE / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    prompt = build_shipcrawler_prompt(name, mode, context, dir_suffix=dir_suffix)
+    prompt = build_shipcrawler_prompt(name, mode, context, dir_suffix=dir_suffix, report_dir=str(report_dir))
 
     start_total = time.time()
     output_lines = []
@@ -157,7 +157,7 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         "--skills", "shipcrawler",
         "-t", "web,terminal",
         "--yolo",
-        "--max-turns", "60",
+        "--max-turns", "150",
         "--source", "tool",
     ]
     if provider:
@@ -229,14 +229,11 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         raw_path.write_text(f"AI agent returned no output.\n\n{stderr}")
 
     # Copy agent-created report files into the worker's report dir
-    # Agent may have saved clean files to its own directory (e.g., "rina-report")
-    # Use the full name to avoid false matches (e.g. "ahmed" matches "ahmed-bassiouny-*")
-    name_parts = safe_name.lower().split()
-    if len(name_parts) > 1:
-        glob_pattern = name_parts[0] + "*" + name_parts[-1] + "*"
-    else:
-        glob_pattern = name_parts[0] + "*" if name_parts else safe_name.lower() + "*"
-    agent_dirs = list(REPORT_BASE.glob(glob_pattern))
+    # Agent may have saved files to a different directory (derived from first word of name)
+    # Only match dirs WITHOUT a date suffix (those are stale previous runs)
+    first_word = safe_name.split()[0].lower() if safe_name.split() else safe_name.lower()
+    agent_candidates = list(REPORT_BASE.glob(f"{first_word}*-report"))
+    agent_dirs = [d for d in agent_candidates if not re.search(r'\d{4}-\d{2}-\d{2}', d.name)]
     for ad in agent_dirs:
         if ad == report_dir:
             continue
@@ -269,7 +266,12 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         md_files.insert(0, raw_path)
 
     total_duration = time.time() - start_total
-    wp.report_complete(task_id, str(report_dir), total_duration, [f.name for f in md_files])
+    wp.report_complete(task_id, str(report_dir), total_duration, [f.name for f in md_files], {
+        "tool_calls": tool_calls,
+        "searches": searches,
+        "sources": source_fetches,
+        "shodan": shodan_hits,
+    }, model=model, provider=provider)
 
     print(f"[worker {task_id}] REPORT COMPLETE ({total_duration:.1f}s total)")
     print(f"[worker {task_id}]   Files: {[f.name for f in md_files]}")
@@ -278,6 +280,8 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
     return {
         "task_id": task_id,
         "mode": mode,
+        "model": model,
+        "provider": provider,
         "status": "done" if exit_code == 0 or output.strip() else "error",
         "report_dir": str(report_dir),
         "report_files": [str(f) for f in md_files],

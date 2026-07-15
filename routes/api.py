@@ -164,7 +164,9 @@ def init_routes(app):
         """Find report directory by vessel/person name (deterministic path)."""
         from worker import sanitize_name, clean_for_filename, REPORT_BASE
         safe = sanitize_name(name)
-        dir_name = clean_for_filename(safe) + "-report"
+        cleaned = clean_for_filename(safe)
+        # Avoid double "-report" if name already ends with it
+        dir_name = cleaned + "-report" if not cleaned.endswith("-report") else cleaned
         report_dir = REPORT_BASE / dir_name
 
         # Fallback: sanitize_name strips diacritics (ä→a), but older reports
@@ -177,8 +179,8 @@ def init_routes(app):
             if len(matches) == 1:
                 report_dir = matches[0]
             elif len(matches) > 1:
-                # Pick the longest match (most specific)
-                report_dir = max(matches, key=lambda p: len(p.name))
+                # Pick the most recently modified (most current run)
+                report_dir = max(matches, key=lambda p: p.stat().st_mtime)
             else:
                 return jsonify({"error": f"no report found for '{name}'"}), 404
 
@@ -201,6 +203,9 @@ def init_routes(app):
                         done_data["mode"] = dd.get("mode", mode)
                         done_data["duration_total"] = dd.get("duration_total")
                         done_data["report_files_list"] = dd.get("report_files", [])
+                        done_data["stats"] = dd.get("stats")
+                        done_data["model"] = dd.get("model")
+                        done_data["provider"] = dd.get("provider")
                         break
                 except (json.JSONDecodeError, OSError):
                     continue
@@ -245,6 +250,8 @@ def init_routes(app):
             "phase_contents": phase_data,
             "report_files": report_files,
             "stats": done_data.get("stats"),
+            "model": done_data.get("model"),
+            "provider": done_data.get("provider"),
         }
         if "error" not in structured:
             response.update(structured)

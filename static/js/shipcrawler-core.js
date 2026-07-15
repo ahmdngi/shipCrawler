@@ -273,7 +273,7 @@ const ShipcrawlerCore = (() => {
       var sp = id('summary-phases'); if (sp) sp.textContent = phaseCount;
       var sd = id('summary-duration'); if (sd) sd.textContent = data.duration_total ? Math.round(data.duration_total / 60) + 'm' : '?';
       var sf = id('summary-files'); if (sf) sf.textContent = (data.files || []).length;
-      renderToolCounts();
+      renderToolCounts(data);
     }
   }
 
@@ -287,6 +287,12 @@ const ShipcrawlerCore = (() => {
     if (srchEl) srchEl.textContent = data && data.stats ? data.stats.searches || 0 : '—';
     var shodanEl = id('summary-shodan');
     if (shodanEl) shodanEl.textContent = data && data.stats ? data.stats.shodan || 0 : '—';
+    var modelEl = id('summary-model');
+    if (modelEl) {
+      var m = data && data.model;
+      var p = data && data.provider;
+      modelEl.textContent = m ? (p ? p + '/' + m : m) : '—';
+    }
   }
 
   function updateSummaryBar(data) {
@@ -736,7 +742,8 @@ const ShipcrawlerCore = (() => {
     }
 
     if (entry && entry.name) {
-      doLoad('/api/report/by-name/' + encodeURIComponent(entry.name));
+      // Use task_id (full directory name with date) for precise lookup
+      doLoad('/api/report/by-name/' + encodeURIComponent(taskId));
     } else if (entry) {
       // No name saved — try deriving from the task's report directory
       doLoad('/api/report/by-name/' + encodeURIComponent(taskId));

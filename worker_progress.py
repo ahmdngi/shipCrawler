@@ -71,11 +71,12 @@ def phase_error(task_id: str, phase: int, name: str, error: str):
     write_event(task_id, "phase_error", phase=phase, name=name, error=error)
 
 
-def report_complete(task_id: str, report_dir: str, duration_total: float, files: list = None):
+def report_complete(task_id: str, report_dir: str, duration_total: float, files: list = None, stats: dict = None, model: str = None, provider: str = None):
     write_event(
         task_id, "report_complete",
         report_dir=report_dir, duration_total=round(duration_total, 1),
-        files=files or [],
+        files=files or [], stats=stats or {},
+        model=model, provider=provider,
     )
 
 

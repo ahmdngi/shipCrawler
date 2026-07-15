@@ -12,3 +12,9 @@ V4_PLAN.md
 start-refactor.sh
 wmn-data.json
 
+history.json
+queue/done/*.json
+queue/pending/*.json
+queue/running/*.json
+__pycache__/
+*.pyc

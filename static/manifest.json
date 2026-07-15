@@ -1,6 +1,6 @@
 {
-  "name": "Shipcrawler OSINT Dashboard",
-  "short_name": "Shipcrawler",
+  "name": "ShipCrawler OSINT Dashboard",
+  "short_name": "ShipCrawler",
   "description": "AI-powered maritime OSINT investigation platform — vessel reconnaissance, exposed service discovery, and vulnerability assessment.",
   "start_url": "/",
   "display": "standalone",
