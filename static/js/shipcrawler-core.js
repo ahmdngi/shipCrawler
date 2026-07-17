@@ -1,8 +1,10 @@
-/* Shipcrawler Core v6.4g — Phase-streaming, real-time terminal feed, animated report */
+/* Shipcrawler Core v7.2+ — Phase-streaming, real-time terminal feed, animated report */
 const ShipcrawlerCore = (() => {
   let currentMode = 'vessel';
   let currentReport = null;
   let phaseCount = 0;
+  let _activeSSE = null;
+  let _activeTaskId = null;
 
   const els = {};
 
@@ -79,6 +81,36 @@ const ShipcrawlerCore = (() => {
 
     // Auto-scroll for terminal feed
     initAutoScroll();
+
+    // Reconnect to running task on page refresh
+    var savedTaskId = localStorage.getItem('shipcrawler-active-task');
+    if (savedTaskId) {
+      fetch('/api/status/' + savedTaskId)
+        .then(function(r) { return r.json(); })
+        .then(function(st) {
+          if (st.status === 'running' || st.status === 'queued') {
+            _activeTaskId = savedTaskId;
+            if (els.btn) els.btn.textContent = 'Investigating...';
+            _activeSSE = ShipcrawlerSSE.connect(savedTaskId, {
+              onPhaseStart: onPhaseStart,
+              onStructuredOutput: onStructuredOutput,
+              onPhaseOutput: onPhaseOutput,
+              onPhaseComplete: onPhaseComplete,
+              onPhaseError: onPhaseError,
+              onReportComplete: onReportComplete,
+              onQueued: onQueued,
+              onDone: onDone,
+              onError: onError,
+            });
+            startPollFallback(savedTaskId);
+          } else {
+            localStorage.removeItem('shipcrawler-active-task');
+          }
+        })
+        .catch(function() {
+          localStorage.removeItem('shipcrawler-active-task');
+        });
+    }
   }
 
   // ── Terminal Feed ──────────────────────────────────────────
@@ -311,7 +343,7 @@ const ShipcrawlerCore = (() => {
     if (sf) sf.textContent = data.report_files ? Object.keys(data.report_files).length : '0';
   }
 
-  function onDone(data) { loadReport(data.task_id); }
+  function onDone(data) { localStorage.removeItem('shipcrawler-active-task'); _activeTaskId = null; _activeSSE = null; loadReport(data.task_id); }
 
   function onError(msg) {
     if (!els.feed) return;
@@ -383,7 +415,9 @@ const ShipcrawlerCore = (() => {
       if (els.btn) els.btn.textContent = 'Investigating...';
 
       // Connect SSE for real-time streaming
-      ShipcrawlerSSE.connect(data.task_id, {
+      _activeTaskId = data.task_id;
+      localStorage.setItem('shipcrawler-active-task', data.task_id);
+      _activeSSE = ShipcrawlerSSE.connect(data.task_id, {
         onPhaseStart: onPhaseStart,
         onStructuredOutput: onStructuredOutput,
         onPhaseOutput: onPhaseOutput,
@@ -711,6 +745,23 @@ const ShipcrawlerCore = (() => {
   }
 
   function loadFromHistory(taskId) {
+    // If a live task is running, show a banner but keep SSE alive
+    if (_activeTaskId && _activeSSE && taskId !== _activeTaskId) {
+      var indicator = document.getElementById('live-task-indicator');
+      if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'live-task-indicator';
+        indicator.className = 'live-task-indicator';
+        indicator.innerHTML = '🔵 Task still running — <a href="#" id="live-task-switch" style="color:var(--color-accent);text-decoration:underline;">Switch back</a>';
+        document.getElementById('sidebar').appendChild(indicator);
+        document.getElementById('live-task-switch').addEventListener('click', function(e) {
+          e.preventDefault();
+          loadFromHistory(_activeTaskId);
+          var ind = document.getElementById('live-task-indicator');
+          if (ind) ind.remove();
+        });
+      }
+    }
     var entry = null;
     var tasks = JSON.parse(localStorage.getItem('shipcrawler-history') || '[]');
     for (var i = 0; i < tasks.length; i++) {

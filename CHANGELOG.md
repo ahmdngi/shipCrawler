@@ -1,5 +1,21 @@
 # Changelog
 
+## v7.3 (2026-07-16)
+
+### Added
+- SSE reconnection on page refresh — running task resumes automatically after refresh
+- Live-task indicator in sidebar — warns when clicking history while a task is still running
+- "Switch back" link in sidebar to restore live view without page refresh
+
+### Fixed
+- Page refresh no longer silently kills active SSE stream for running investigations
+- Clicking old history entries no longer disconnects the current investigation's SSE feed
+- Active task ID persisted in `localStorage` across page loads
+
+### Changed
+- Cache-buster bumped (core.js v26, sse.js v15)
+- Version bumped to v7.3
+
 ## v7.2 (2026-07-15)
 
 ### Added

@@ -779,6 +779,12 @@ footer {
   padding:1rem; text-align:center; color:var(--color-ink-3);
   font-size:0.78rem;
 }
+.live-task-indicator {
+  padding:0.5rem 0.6rem; margin:0.3rem 0.4rem;
+  border-radius:6px; font-size:0.78rem;
+  background:var(--color-paper-2); color:var(--color-ink-2);
+  border-left:3px solid var(--color-accent);
+}
 .sidebar-overlay { display:none; }
 
 /* Sidebar closed state — only toggle button visible */
