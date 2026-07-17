@@ -639,7 +639,7 @@ const ShipcrawlerCore = (() => {
           localStorage.setItem('shipcrawler-history', JSON.stringify(reports));
           localStorage.setItem('shipcrawler-history-ts', String(Date.now()));
           renderHistory(reports);
-          autoLoadLatest(reports);
+          // Don't auto-load the latest report — keep a clean landing page
         } else {
           var list = document.getElementById('sidebar-list');
           if (list) list.innerHTML = '<div class="sidebar-empty">No searches yet</div>';
@@ -651,7 +651,7 @@ const ShipcrawlerCore = (() => {
         if (stored) {
           try {
             var tasks = JSON.parse(stored);
-            if (tasks.length > 0) { renderHistory(tasks); autoLoadLatest(tasks); return; }
+            if (tasks.length > 0) { renderHistory(tasks); return; }
           } catch(e) {}
         }
         var list = document.getElementById('sidebar-list');

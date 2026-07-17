@@ -124,7 +124,8 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
     dir_suffix = f"-{today}"
 
     safe_name = sanitize_name(name)
-    dir_name = clean_for_filename(safe_name) + dir_suffix + "-report"
+    # Include task_id (UUID) so same-vessel same-day runs don't collide
+    dir_name = clean_for_filename(safe_name) + dir_suffix + f"-{task_id[:8]}" + "-report"
     report_dir = REPORT_BASE / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
 

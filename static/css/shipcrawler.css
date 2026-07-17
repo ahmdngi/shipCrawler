@@ -126,6 +126,16 @@ nav .nav-links button:hover { border-color:var(--color-accent); color:var(--colo
   display:inline-block; width:8px; height:8px; border-radius:50%;
   background:var(--color-green); animation:pulse-dot 1.5s ease-in-out infinite;
 }
+.sse-status {
+  font-size:0.7rem; color:var(--color-green); margin-left:0.75rem;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.sse-status::before {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:var(--color-green); display:inline-block;
+}
+.sse-status.disconnected { color:var(--color-red); }
+.sse-status.disconnected::before { background:var(--color-red); }
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
 .hero h1 {
   font-size:clamp(1.8rem,5vw,3.2rem); font-weight:bold;

@@ -101,6 +101,7 @@
       <span class="theme-pill" data-theme="classic" onclick="ShipcrawlerUI.applyTheme('classic')">Classic</span>
       <span class="theme-pill" data-theme="oversight" onclick="ShipcrawlerUI.applyTheme('oversight')">Oversight</span>
     </div>
+    <span class="sse-status" id="sse-status">connected</span>
   </div>
 </nav>
 
@@ -331,6 +332,20 @@
 <script src="/static/js/shipcrawler-sse.js?v=14"></script>
 <script src="/static/js/shipcrawler-core.js?v=25"></script>
 <script src="/static/js/shipcrawler-ui.js?v=13"></script>
+<script>
+// Health check — update connection status indicator
+(function() {
+  const el = document.getElementById('sse-status');
+  if (!el) return;
+  function check() {
+    fetch('/api/health', {signal: AbortSignal.timeout(5000)})
+      .then(r => { el.textContent = 'connected'; el.classList.remove('disconnected'); })
+      .catch(() => { el.textContent = 'disconnected'; el.classList.add('disconnected'); });
+  }
+  check();
+  setInterval(check, 30000);
+})();
+</script>
 <script>
 (function() {
   const canvas = document.getElementById('particles-canvas');

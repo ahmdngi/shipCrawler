@@ -147,6 +147,11 @@ def init_routes(app):
                 # Heartbeat every 15s to keep connection alive
                 time.sleep(0.5)
 
+                # Send keepalive comment every 30 idle cycles (~15s)
+                # to prevent browser SSE timeout
+                if not events:
+                    yield ": keepalive\n\n"
+
         return Response(
             stream_with_context(generate()),
             mimetype="text/event-stream",

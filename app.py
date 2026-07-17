@@ -24,9 +24,19 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
+    import socket
+
     print(f"  🚢 Shipcrawler OSINT Dashboard v6.3 (AI Agent)")
     print(f"  🌐 http://{TAILSCALE_IP}:{PORT}")
     print(f"  🔒 Binding to Tailscale IP: {TAILSCALE_IP}")
     print()
-    # threaded=True so SSE long-poll doesn't block other connections
-    app.run(host=TAILSCALE_IP, port=PORT, debug=False, threaded=True)
+
+    # Enable TCP keepalive so stale connections don't hang forever
+    from werkzeug.serving import make_server
+
+    srv = make_server(TAILSCALE_IP, PORT, app, threaded=True)
+    srv.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    srv.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 30)
+    srv.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10)
+    srv.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+    srv.serve_forever()
