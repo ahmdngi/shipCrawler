@@ -1,8 +1,12 @@
-# Shipcrawler v7.0 — Structured Stream: Clean Data Display
+# ShipCrawler v7.3 — SSE Reconnection & Live-Task Indicator
+
+<p align="center">
+  <img src="static/img/logo.png" alt="ShipCrawler Logo" width="400">
+</p>
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
-Real-time, phase-by-phase AI agent investigation with SSE streaming — watch each OSINT phase execute live in the browser.
+Real-time, phase-by-phase AI agent investigation with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection.
 
 ---
 

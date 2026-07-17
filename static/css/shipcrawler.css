@@ -55,6 +55,7 @@ nav .brand {
   text-decoration:none; letter-spacing:-0.01em;
 }
 nav .brand span { color:var(--color-accent); }
+nav .brand-logo { height:28px; width:auto; vertical-align:middle; margin-right:6px; }
 nav .nav-links { display:flex; gap:1rem; align-items:center; }
 nav .nav-links a {
   color:var(--color-ink-2); text-decoration:none;
