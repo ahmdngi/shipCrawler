@@ -8,6 +8,10 @@ Maritime OSINT investigation platform that uses autonomous AI agents to identify
 
 Real-time, phase-by-phase AI agent investigation with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection.
 
+[![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)]()
+[![Language](https://img.shields.io/badge/language-Python-blue?style=flat-square)]()
+[![Stars](https://img.shields.io/github/stars/ahmdngi/shipcrawler?style=flat-square)](https://github.com/ahmdngi/shipcrawler)
+
 ---
 
 ## Quick Start (5 minutes)
