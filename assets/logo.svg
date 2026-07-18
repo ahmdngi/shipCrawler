@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="20" fill="#0C0C0D"/>
+  <!-- Radar arc -->
+  <path d="M60 80 A30 30 0 0 0 30 50" stroke="#22C55E" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M60 80 A45 45 0 0 0 15 35" stroke="#22C55E" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>
+  <path d="M60 80 A55 55 0 0 0 5 25" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.2"/>
+  <!-- Radar sweep line -->
+  <line x1="60" y1="80" x2="28" y2="18" stroke="#22C55E" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <!-- Ship hull -->
+  <path d="M35 85 L40 75 L80 75 L85 85 Z" stroke="#22C55E" stroke-width="2.5" stroke-linejoin="round" fill="#22C55E" fill-opacity="0.15"/>
+  <!-- Mast -->
+  <line x1="60" y1="75" x2="60" y2="55" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
+  <!-- Antenna -->
+  <circle cx="60" cy="52" r="3" fill="#22C55E"/>
+  <!-- Waterline -->
+  <line x1="30" y1="90" x2="90" y2="90" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+  <line x1="25" y1="94" x2="95" y2="94" stroke="#22C55E" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+</svg>
