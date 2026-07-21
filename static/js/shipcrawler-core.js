@@ -390,7 +390,11 @@ const ShipcrawlerCore = (() => {
     if (els.targetDisp) els.targetDisp.textContent = query;
     _currentQuery = query;
     phaseCount = 0;
+    // Hide hero, show terminal
+    var hero = document.getElementById('search-section');
+    if (hero) hero.style.display = 'none';
     showFeed();
+    if (els.feed) els.feed.scrollIntoView({ behavior:'smooth', block:'start' });
 
       try {
         var modelSelect = document.getElementById('model-select');
@@ -667,6 +671,8 @@ const ShipcrawlerCore = (() => {
     if (fs) fs.style.display = 'none';
     var ft = document.getElementById('report-file-tabs');
     if (ft) { ft.style.display = 'none'; ft.innerHTML = ''; }
+    var vh = document.getElementById('vessel-header');
+    if (vh) { vh.style.display = 'none'; vh.innerHTML = ''; }
   }
 
   function toggleSidebar() {
@@ -816,12 +822,12 @@ const ShipcrawlerCore = (() => {
           if (els.reportSection) els.reportSection.classList.add('visible');
           if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
           displayReport(data);
-          setTimeout(function() { showExecSummary(data); }, 100);
           updateSummaryBar(data);
           renderToolCounts(data);
           var stored = localStorage.getItem('shipcrawler-history');
           renderHistory(stored ? JSON.parse(stored) : []);
           populateRightPanel(data);
+          setTimeout(function() { showExecSummary(data); }, 100);
           // Scroll terminal into view
           if (els.feed) els.feed.scrollIntoView({ behavior:'smooth', block:'start' });
         })
@@ -841,7 +847,10 @@ const ShipcrawlerCore = (() => {
     }
   }
 
-  function showExecSummary(data) {
+  function showVesselHeader(data) {
+    var hdr = document.getElementById('vessel-header');
+    if (!hdr) return;
+    // Get vessel name + exec summary from report
     var reportText = '';
     if (data.report_files && data.report_files['analyst-report.md']) {
       reportText = data.report_files['analyst-report.md'];
@@ -850,25 +859,77 @@ const ShipcrawlerCore = (() => {
         if (k.indexOf('analyst') >= 0) { reportText = data.phase_contents[k]; break; }
       }
     }
-    if (!reportText) return;
+    if (!reportText) { hdr.style.display = 'none'; return; }
+
+    // Vessel name from H1
+    var nameMatch = reportText.match(/^#\s*(.+?)(?:\n|$)/m);
+    var vesselName = nameMatch ? nameMatch[1].trim() : (data.vessel && data.vessel.name || data.task_id || 'Vessel');
+
+    // Exec summary
     var m = reportText.match(/##\s*\d*\.?\s*(?:EXECUTIVE\s*)?SUMMARY\s*\n([\s\S]*?)(?:\n##|\n---|\n\*\*Overall)/i);
-    if (!m) return;
-    var summary = m[1].trim().split('\n\n')[0].trim().replace(/\*\*/g,'').replace(/\[.*?\]/g,'').substring(0,500);
+    var summary = m ? m[1].trim().split('\n\n')[0].trim().replace(/\*\*/g,'').replace(/\[.*?\]/g,'').substring(0,400) : '';
+
+    // Warning badges
     var warnings = [];
     if (/shadow\s*fleet|dark\s*fleet/i.test(reportText)) warnings.push('🔴 SHADOW FLEET');
     if (/sanctioned|sanctions/i.test(reportText)) warnings.push('🟡 SANCTIONED');
     if (/AIS\s*shutdown|AIS\s*dark|AIS\s*off/i.test(reportText)) warnings.push('🟠 AIS DARK');
     if (/kinetic|drone|attack|strike/i.test(reportText)) warnings.push('💥 KINETIC THREAT');
     if (/casualty|repairing/i.test(reportText)) warnings.push('⚠️ IN CASUALTY');
-    var vesselName = (data.vessel && data.vessel.name) || data.task_id || 'Vessel';
-    var html = '<div style="font-family:JetBrains Mono,Fira Code,monospace;font-size:0.82rem;line-height:1.6;padding:0.5rem;">';
-    html += '<div style="color:var(--color-accent);font-weight:600;margin-bottom:0.5rem;">$ shipcrawler --summary</div>';
-    html += '<div style="margin-bottom:0.75rem;padding:0.5rem;border-left:3px solid '+(warnings.length?'var(--color-red)':'var(--color-green)')+';background:var(--color-paper-2);border-radius:0 6px 6px 0;">';
-    html += '<div style="font-weight:600;color:var(--color-accent);">'+vesselName+'</div>';
-    if (warnings.length) html += '<div style="margin:0.3rem 0;">'+warnings.join('  ')+'</div>';
-    html += '<div style="color:var(--color-ink-2);margin-top:0.2rem;">'+summary+'...</div></div></div>';
-    var body = document.getElementById('feed-body');
-    if (body) body.innerHTML = html;
+
+    var border = warnings.length ? 'var(--color-red,#e34)' : 'var(--color-green,#3fb950)';
+    var html = '<div style="font-weight:600;color:var(--color-accent);font-size:0.92rem;">' + escapeHtml(vesselName) + '</div>';
+    if (warnings.length) {
+      html += '<div style="margin-top:0.3rem;">' + warnings.map(function(w) {
+        return '<span style="background:rgba(228,51,68,0.15);color:#e34;padding:0.15rem 0.5rem;border-radius:3px;font-size:0.7rem;margin-right:0.3rem;">' + w + '</span>';
+      }).join('') + '</div>';
+    }
+    if (summary) {
+      html += '<div style="margin-top:0.3rem;color:var(--color-ink-2);font-size:0.78rem;line-height:1.5;border-left:3px solid ' + border + ';padding-left:0.5rem;">' + escapeHtml(summary) + (summary.length >= 400 ? '...' : '') + '</div>';
+    }
+    hdr.innerHTML = html;
+    hdr.style.display = 'block';
+  }
+
+  function showExecSummary(data) {
+    // Show vessel name + exec summary header above terminal
+    showVesselHeader(data);
+    // Replay SSE progress log into terminal
+    var taskId = data.task_id || '';
+    if (!taskId || !els.feedBody) return;
+
+    // Clear terminal and show replay header
+    els.feedBody.innerHTML = '<div class="terminal-prompt" style="color:var(--color-accent);font-weight:600;">$ shipcrawler --replay ' + escapeHtml(taskId) + '</div>';
+
+    fetch('/api/progress/' + taskId)
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(events) {
+        if (!events.length) {
+          els.feedBody.innerHTML += '<div style="color:var(--color-ink-3);margin-top:0.5rem;font-size:0.82rem;">No progress log found for this run.</div>';
+          return;
+        }
+        events.forEach(function(ev) {
+          if (ev.event === 'phase_start') {
+            onPhaseStart(ev);
+          } else if (ev.event === 'structured_output') {
+            onStructuredOutput(ev);
+          } else if (ev.event === 'phase_complete') {
+            var starts = els.feed.querySelectorAll('.phase-line.phase-start');
+            if (starts.length) {
+              var last = starts[starts.length - 1];
+              last.className = 'phase-line phase-complete';
+              var badge = last.querySelector('.phase-badge');
+              if (badge) badge.textContent = '✓';
+              var spinner = last.querySelector('.spinner');
+              if (spinner) spinner.textContent = '✓';
+            }
+          }
+        });
+        if (els.feedBody) els.feedBody.scrollTop = els.feedBody.scrollHeight;
+      })
+      .catch(function() {
+        els.feedBody.innerHTML += '<div style="color:var(--color-ink-3);margin-top:0.5rem;font-size:0.82rem;">No progress log found for this run.</div>';
+      });
   }
 
   // Override loadReport to also save to history
@@ -890,8 +951,8 @@ const ShipcrawlerCore = (() => {
         if (hero) hero.style.display = 'none';
         setTimeout(function() {
           displayReport(data);
-          setTimeout(function() { showExecSummary(data); }, 100);
           populateRightPanel(data);
+          setTimeout(function() { showExecSummary(data); }, 100);
           if (els.feed) els.feed.scrollIntoView({ behavior:'smooth', block:'start' });
         }, 300);
       })

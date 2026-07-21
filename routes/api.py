@@ -310,6 +310,34 @@ def init_routes(app):
         report_dir = Path(report_dir)
         return _build_report_response(done_data, report_dir)
 
+    # ─── Progress log: replay SSE history ──────────────────────
+
+    @app.route("/api/progress/<path:task_id>")
+    def get_progress(task_id):
+        """Return the progress log as JSON lines for terminal replay."""
+        # task_id may be the full directory name (e.g. 9229374-2026-07-21-dd5a6dd0-report)
+        # extract the short hex task_id from it
+        short_id = task_id
+        m = re.search(r'([0-9a-f]{8})', task_id)
+        if m:
+            short_id = m.group(1)
+        progress_path = PROGRESS_DIR / f"{short_id}.log"
+        if not progress_path.exists():
+            # Also try the full task_id
+            progress_path = PROGRESS_DIR / f"{task_id}.log"
+        if not progress_path.exists():
+            return jsonify([])
+        events = []
+        for line in progress_path.read_text(errors="replace").strip().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return jsonify(events)
+
     # ─── History: list all report directories ──────────────────
 
     @app.route("/api/history")
@@ -434,22 +462,36 @@ def init_routes(app):
             #   # OSINT Analyst Report — Vessel JAGGER (IMO 9354301)
             #   # Analyst Report: ASANA (IMO 9035838)
             #   # MT ASANA — Vessel OSINT Analyst Report
+            #   # 9207027 (VERNAL) — Vessel OSINT Analyst Report
+            #   # VESSEL OSINT ANALYST REPORT - ASTERI (IMO 9282493)
             # Capture the vessel name token(s) before "(IMO ...)" or "— IMO"
             # or "(ex-NAME)" (ex-name patterns). The non-greedy capture stops
             # at the first delimiter: paren-before-keyword or em-dash.
+            # Also handle "(NAME)" pattern: "9207027 (VERNAL) — ..."
             m = re.search(
                 r'^#+\s*(?:.*?[:\—\-]\s*)?(?:Vessel\s+|MT\s+|MSV\s+)?'
-                r'([A-Z][A-Z0-9\s\-]{1,40}?)'
+                r'([A-Z][A-Z0-9 \t\-]{1,40}?)'
                 r'\s*(?:\(\s*ex-|\(?(?:IMO|MMSI)[:\s]|\—)',
                 first_lines, re.MULTILINE)
             if m:
                 name = m.group(1).strip().rstrip('-').strip()
                 # Filter out generic words that shouldn't be vessel names
-                if name.upper() in ('OSINT', 'ANALYST', 'VESSEL', 'REPORT', 'MT', 'MSV', 'FULL'):
-                    return (None, resolved_imo)
-                # Lowercase, hyphen-join, collapse spaces
-                name = name.lower().replace(' ', '-').replace('--', '-').strip('-')
-                return (name or None, resolved_imo)
+                if name.upper() in ('OSINT', 'ANALYST', 'VESSEL', 'REPORT', 'MT', 'MSV', 'FULL', 'EXECUTIVE-SUMMARY', 'EXECUTIVE', 'SUMMARY'):
+                    name = None
+                else:
+                    # Lowercase, hyphen-join, collapse spaces
+                    name = name.lower().replace(' ', '-').replace('--', '-').strip('-')
+            else:
+                name = None
+            # Fallback: try "(NAME)" pattern — e.g. "9207027 (VERNAL) — ..."
+            if not name:
+                m2 = re.search(r'\(([A-Z][A-Za-z]{1,40})\)', first_lines)
+                if m2:
+                    candidate = m2.group(1)
+                    if candidate.upper() not in ('IMO', 'MMSI', 'EX', 'OSINT'):
+                        name = candidate.lower().replace(' ', '-').strip('-')
+            if name:
+                return (name, resolved_imo)
             return (None, resolved_imo)
 
         def _build_display_name(report_dir, dirname, imo, mmsi, date):

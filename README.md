@@ -571,9 +571,13 @@ The model dropdown fetches from `/api/profiles/models` on profile change. Edit `
 - **Live theme switching** — no reload needed; all panels, terminal, and modal adopt theme instantly
 - **3-column layout** — sidebar | center (hero + terminal + summary) | right (launch panel + globe), matching sirb
 - **Rotating globe** — Three.js particle globe at bottom of right panel
-- **Executive summary** — terminal shows exec summary with warning badges (🔴 SHADOW FLEET, 🟡 SANCTIONED, etc.) when viewing past runs
+- **SSE replay** — terminal replays full progress log history when clicking old runs (`/api/progress/<task_id>` endpoint)
+- **Vessel header** — vessel name + warning badges + exec summary shown above terminal when viewing old runs
 - **Terminal welcome message** — shows `$ shipcrawler --status` on landing page
 - **Red SVG favicon** — radar icon in browser tab
+- **Profile/model providers** — `profiles-models.json` has correct `provider` field for all models (deepseek, anthropic, openai)
+- **Delete button restored** — `.sidebar-item` → `.run-item` CSS class rename fix
+- **Vessel name parsing** — extracts vessel name from `(NAME)` pattern in H1, filters table header words
 - **SEO & meta enrichment** — Open Graph, Twitter Card, JSON-LD structured data, description, keywords, author, canonical URL, theme-color
 
 ### v6.4e

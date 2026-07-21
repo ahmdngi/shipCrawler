@@ -1,42 +1,170 @@
 {
   "": [
-    {"value": "deepseek-v4-flash", "provider": "", "label": "DeepSeek V4 Flash"},
-    {"value": "deepseek-v4-pro", "provider": "", "label": "DeepSeek V4 Pro"},
-    {"value": "claude-sonnet-4-6", "provider": "anthropic", "label": "Claude Sonnet 4.6"},
-    {"value": "claude-opus-4-6", "provider": "anthropic", "label": "Claude Opus 4.6"},
-    {"value": "claude-opus-4-8", "provider": "anthropic", "label": "Claude Opus 4.8"},
-    {"value": "claude-haiku-4-5", "provider": "anthropic", "label": "Claude Haiku 4.5"},
-    {"value": "claude-sonnet-5", "provider": "anthropic", "label": "Claude Sonnet 5"},
-    {"value": "claude-fable-5", "provider": "anthropic", "label": "Claude Fable 5"},
-    {"value": "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit", "provider": "custom:llama-local", "label": "Llama 3.1 8B (local)"}
+    {
+      "value": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Flash"
+    },
+    {
+      "value": "deepseek-v4-pro",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Pro"
+    },
+    {
+      "value": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 4.6"
+    },
+    {
+      "value": "claude-opus-4-6",
+      "provider": "anthropic",
+      "label": "Claude Opus 4.6"
+    },
+    {
+      "value": "claude-opus-4-8",
+      "provider": "anthropic",
+      "label": "Claude Opus 4.8"
+    },
+    {
+      "value": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "label": "Claude Haiku 4.5"
+    },
+    {
+      "value": "claude-sonnet-5",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 5"
+    },
+    {
+      "value": "claude-fable-5",
+      "provider": "anthropic",
+      "label": "Claude Fable 5"
+    },
+    {
+      "value": "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit",
+      "provider": "custom:llama-local",
+      "label": "Llama 3.1 8B (local)"
+    }
   ],
   "local": [
-    {"value": "qwen2.5:3b", "provider": "custom:ollama", "label": "Qwen 2.5 3B"},
-    {"value": "qwen2.5:7b", "provider": "custom:ollama", "label": "Qwen 2.5 7B"},
-    {"value": "llama3.2:3b", "provider": "custom:ollama", "label": "Llama 3.2 3B"},
-    {"value": "mistral:7b", "provider": "custom:ollama", "label": "Mistral 7B"},
-    {"value": "deepseek-r1:8b", "provider": "custom:ollama", "label": "DeepSeek R1 8B"},
-    {"value": "phi4:14b", "provider": "custom:ollama", "label": "Phi-4 14B"}
+    {
+      "value": "qwen2.5:3b",
+      "provider": "custom:ollama",
+      "label": "Qwen 2.5 3B"
+    },
+    {
+      "value": "qwen2.5:7b",
+      "provider": "custom:ollama",
+      "label": "Qwen 2.5 7B"
+    },
+    {
+      "value": "llama3.2:3b",
+      "provider": "custom:ollama",
+      "label": "Llama 3.2 3B"
+    },
+    {
+      "value": "mistral:7b",
+      "provider": "custom:ollama",
+      "label": "Mistral 7B"
+    },
+    {
+      "value": "deepseek-r1:8b",
+      "provider": "custom:ollama",
+      "label": "DeepSeek R1 8B"
+    },
+    {
+      "value": "phi4:14b",
+      "provider": "custom:ollama",
+      "label": "Phi-4 14B"
+    }
   ],
   "research": [
-    {"value": "deepseek-v4-flash", "provider": "deepseek", "label": "DeepSeek V4 Flash"},
-    {"value": "deepseek-v4-pro", "provider": "deepseek", "label": "DeepSeek V4 Pro"},
-    {"value": "claude-sonnet-4-6", "provider": "anthropic", "label": "Claude Sonnet 4.6"},
-    {"value": "claude-opus-4-6", "provider": "anthropic", "label": "Claude Opus 4.6"},
-    {"value": "claude-sonnet-5", "provider": "anthropic", "label": "Claude Sonnet 5"},
-    {"value": "gpt-4o", "provider": "openai", "label": "GPT-4o"},
-    {"value": "gpt-4o-mini", "provider": "openai", "label": "GPT-4o Mini"}
+    {
+      "value": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Flash"
+    },
+    {
+      "value": "deepseek-v4-pro",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Pro"
+    },
+    {
+      "value": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 4.6"
+    },
+    {
+      "value": "claude-opus-4-6",
+      "provider": "anthropic",
+      "label": "Claude Opus 4.6"
+    },
+    {
+      "value": "claude-sonnet-5",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 5"
+    },
+    {
+      "value": "gpt-4o",
+      "provider": "openai",
+      "label": "GPT-4o"
+    },
+    {
+      "value": "gpt-4o-mini",
+      "provider": "openai",
+      "label": "GPT-4o Mini"
+    }
   ],
   "shipcrawler": [
-    {"value": "deepseek-v4-flash", "provider": "deepseek", "label": "DeepSeek V4 Flash"},
-    {"value": "deepseek-v4-pro", "provider": "deepseek", "label": "DeepSeek V4 Pro"},
-    {"value": "claude-sonnet-4-6", "provider": "anthropic", "label": "Claude Sonnet 4.6"},
-    {"value": "claude-opus-4-6", "provider": "anthropic", "label": "Claude Opus 4.6"},
-    {"value": "claude-haiku-4-5", "provider": "anthropic", "label": "Claude Haiku 4.5"},
-    {"value": "claude-sonnet-5", "provider": "anthropic", "label": "Claude Sonnet 5"},
-    {"value": "claude-fable-5", "provider": "anthropic", "label": "Claude Fable 5"},
-    {"value": "gpt-4o", "provider": "openai", "label": "GPT-4o"},
-    {"value": "gpt-4o-mini", "provider": "openai", "label": "GPT-4o Mini"},
-    {"value": "glm-5.2", "provider": "custom:UT-GLM5.2", "label": "GLM 5.2"}
+    {
+      "value": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Flash"
+    },
+    {
+      "value": "deepseek-v4-pro",
+      "provider": "deepseek",
+      "label": "DeepSeek V4 Pro"
+    },
+    {
+      "value": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 4.6"
+    },
+    {
+      "value": "claude-opus-4-6",
+      "provider": "anthropic",
+      "label": "Claude Opus 4.6"
+    },
+    {
+      "value": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "label": "Claude Haiku 4.5"
+    },
+    {
+      "value": "claude-sonnet-5",
+      "provider": "anthropic",
+      "label": "Claude Sonnet 5"
+    },
+    {
+      "value": "claude-fable-5",
+      "provider": "anthropic",
+      "label": "Claude Fable 5"
+    },
+    {
+      "value": "gpt-4o",
+      "provider": "openai",
+      "label": "GPT-4o"
+    },
+    {
+      "value": "gpt-4o-mini",
+      "provider": "openai",
+      "label": "GPT-4o Mini"
+    },
+    {
+      "value": "glm-5.2",
+      "provider": "custom:UT-GLM5.2",
+      "label": "GLM 5.2"
+    }
   ]
 }

@@ -818,9 +818,9 @@ footer {
   background:transparent; color:var(--color-ink-4);
   opacity:0; transition:opacity 0.15s, color 0.15s;
 }
-.sidebar-item:hover .sidebar-delete { opacity:1; }
+.run-item:hover .sidebar-delete { opacity:1; }
 .sidebar-delete:hover { color:var(--color-red,#e34) !important; }
-.sidebar-empty {
+.run-empty {
   padding:1rem; text-align:center; color:var(--color-ink-3);
   font-size:0.78rem;
 }

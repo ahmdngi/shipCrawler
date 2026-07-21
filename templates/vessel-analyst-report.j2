@@ -1,7 +1,7 @@
 {# Vessel OSINT Analyst Report — skeleton rendered at scan start.
    The agent fills each section after research. Known vars: vessel_name, date,
    report_dir, framework_version. Everything else is discovered by the agent. #}
-# {{ vessel_name|upper }} — Vessel OSINT Analyst Report
+# {{ vessel_name|upper }}{% if imo and vessel_name == imo|string %} (IMO {{ imo }}){% endif +%} — Vessel OSINT Analyst Report
 
 **Target:** {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif +%}
 **Investigation Date:** {{ date }}
