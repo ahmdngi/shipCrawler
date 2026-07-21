@@ -22,6 +22,12 @@ from pathlib import Path
 import worker_progress as wp
 import stream_formatter as sf
 
+try:
+    import template_renderer
+    _TEMPLATES_AVAILABLE = template_renderer.is_jinja_available()
+except ImportError:
+    _TEMPLATES_AVAILABLE = False
+
 BASE_DIR = Path(__file__).parent
 QUEUE_DIR = BASE_DIR / "queue"
 PENDING_DIR = QUEUE_DIR / "pending"
@@ -81,6 +87,30 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
         content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
         return content
     else:
+        if _TEMPLATES_AVAILABLE and report_dir:
+            report_instruction = (
+                "\n"
+                "⚠️ TEMPLATE SKELETONS HAVE BEEN WRITTEN to " + report_dir + "/ — "
+                "analyst-report.md, red-team-playbook.md, indicators-and-detection.md. "
+                "These are Jinja2 skeleton files with <!-- --> comment placeholders. "
+                "FILL IN each section by READING the skeleton, researching the data, "
+                "and OVERWRITING the placeholders with real findings. Do NOT discard "
+                "the skeleton structure — complete it. Use Python open().write() to "
+                "write the completed files.\n"
+            )
+        else:
+            report_instruction = (
+                "Generate a COMPREHENSIVE 3-file report:\n"
+                "1. analyst-report.md — full narrative with vessel identity, current "
+                "status, port calls, Shodan findings, vulnerability assessment, threat "
+                "intel, operational pattern analysis, confidence assessment per category "
+                "(HIGH/MEDIUM/LOW/SPECULATIVE)\n"
+                "2. red-team-playbook.md — 2-3 attack vectors with name, difficulty, "
+                "cost, detection prob, equipment list, numbered execution steps, "
+                "detection points table\n"
+                "3. indicators-and-detection.md — indicator table (ID, type, phase, "
+                "priority, description), Elastic SIEM rules, Zeek scripts, M-SOC runbook\n\n"
+            )
         content = p(
             f"Using the shipcrawler OSINT framework, research the vessel \"{name}\".\n\n"
             f"{base_context}\n\n"
@@ -94,14 +124,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
             f"Phase 3: Vulnerability Assessment — CVEs, misconfigurations, risk levels\n"
             f"Phase 4: Threat Intelligence — maritime cyber incidents, news, geopolitical context\n"
             f"Phase 5: Report Generation\n\n"
-            f"Generate a COMPREHENSIVE 3-file report:\n"
-            f"1. analyst-report.md — full narrative with vessel identity, current status, port calls, "
-            f"Shodan findings, vulnerability assessment, threat intel, operational pattern analysis, "
-            f"confidence assessment per category (HIGH/MEDIUM/LOW/SPECULATIVE)\n"
-            f"2. red-team-playbook.md — 2-3 attack vectors with name, difficulty, cost, detection prob, "
-            f"equipment list, numbered execution steps, detection points table\n"
-            f"3. indicators-and-detection.md — indicator table (ID, type, phase, priority, description), "
-            f"Elastic SIEM rules, Zeek scripts, M-SOC runbook\n\n"
+            f"{report_instruction}"
             f"CRITICAL: Write all report files using Python (open().write()) — NEVER use bash heredocs "
             f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
@@ -129,6 +152,17 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
     dir_name = clean_for_filename(safe_name) + dir_suffix + f"-{task_id[:8]}" + "-report"
     report_dir = REPORT_BASE / dir_name
     report_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write Jinja2 skeleton files for the agent to fill in (vessel mode)
+    if mode != "person" and _TEMPLATES_AVAILABLE:
+        try:
+            template_renderer.write_skeleton_files(
+                vessel_name=name,
+                report_dir=report_dir,
+                date=today,
+            )
+        except Exception:
+            pass  # non-fatal — agent falls back to freeform generation
 
     prompt = build_shipcrawler_prompt(name, mode, context, dir_suffix=dir_suffix, report_dir=str(report_dir))
 
@@ -193,16 +227,20 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
             if event is None:
                 continue
 
-            # Count tool calls for summary stats
-            tool_calls += 1
-            msg_lower = (event.get("message") or "").lower()
+            # Count tool calls for summary stats — only actual tool executions,
+            # not status messages or reasoning blocks
             icon = event.get("icon", "")
-            if "search" in msg_lower or icon in ("🔍", "🔎"):
-                searches += 1
-            if icon in ("📄", "📑", "🌐"):
-                source_fetches += 1
-            if "shodan" in msg_lower:
-                shodan_hits += 1
+            msg_lower = (event.get("message") or "").lower()
+            is_tool_exec = icon in ("💻", "🔍", "📄", "🌐", "📑") and "preparing" not in msg_lower
+            if is_tool_exec:
+                tool_calls += 1
+                if icon == "🔍":
+                    searches += 1
+                if icon in ("📄", "🌐"):
+                    source_fetches += 1
+                # Shodan — only count actual terminal execs containing "shodan"
+                if icon == "💻" and "shodan" in msg_lower:
+                    shodan_hits += 1
 
             # Write as structured output event
             wp.structured_output(
@@ -226,7 +264,14 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
 
     output = "".join(output_lines)
 
-    # Write the raw Hermes output as raw-output.md (full trace with prompt + tool calls)
+    # Write full untruncated hermes log for stats parsing (like sirb)
+    log_path = report_dir / "agent.log"
+    if output.strip():
+        log_path.write_text(output)
+    else:
+        log_path.write_text(f"AI agent returned no output.\n\n{stderr}")
+
+    # Write truncated raw-output.md for dashboard display (100KB cap)
     raw_path = report_dir / "raw-output.md"
     if output.strip():
         raw_path.write_text(output[:100000])
@@ -271,6 +316,15 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         md_files.insert(0, raw_path)
 
     total_duration = time.time() - start_total
+
+    # Override tool_calls with the real count from the hermes session summary
+    # The live counter over-counts (includes status messages); the session
+    # summary has the authoritative count: "Messages: N (1 user, M tool calls)"
+    if output.strip():
+        m = re.search(r'Messages:\s*\d+\s*\([^)]*?(\d+)\s+tool calls?\)', output)
+        if m:
+            tool_calls = int(m.group(1))
+
     wp.report_complete(task_id, str(report_dir), total_duration, [f.name for f in md_files], {
         "tool_calls": tool_calls,
         "searches": searches,

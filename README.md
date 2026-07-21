@@ -434,7 +434,8 @@ Each phase → AI agent with shipcrawler OSINT skills
 | **Queue Worker** | `worker.py` | Polls queue, spawns AI agents with `--profile` flag |
 | **Progress Logger** | `worker_progress.py` | JSON Lines log writer/reader |
 | **Report Renderer** | `renderer.py` | Structured report parser |
-| **SSE Stream Formatter** | `stream_formatter.py` | Cleans raw agent output into SSE events |
+| **Template Renderer** | `template_renderer.py` | Jinja2 report skeleton renderer |
+| **Stream Formatter** | `stream_formatter.py` | Cleans raw agent output into SSE events |
 | **Frontend SSE** | `static/js/shipcrawler-sse.js` | EventSource client |
 | **Frontend Core** | `static/js/shipcrawler-core.js` | UI logic, terminal, modals, profile→model sync |
 | **Frontend UI** | `static/js/shipcrawler-ui.js` | Theme switcher |
@@ -448,12 +449,16 @@ shipcrawler/
 ├── worker.py                     # Queue worker daemon
 ├── worker_progress.py            # Progress log writer
 ├── renderer.py                   # Report renderer
+├── template_renderer.py          # Jinja2 skeleton renderer
 ├── stream_formatter.py           # SSE event formatter
 ├── profiles-models.json          # Per-profile model list
 ├── routes/
 │   └── api.py                    # API route definitions
 ├── templates/
-│   └── index.html                # Single-page dashboard
+│   ├── index.html                # Single-page dashboard
+│   ├── vessel-analyst-report.j2        # Report skeleton template
+│   ├── vessel-red-team-playbook.j2     # Red team skeleton template
+│   └── vessel-indicators-and-detection.j2  # Detection rules skeleton
 ├── static/
 │   ├── css/
 │   │   └── shipcrawler.css       # All styles (3 themes via CSS vars)
@@ -548,7 +553,6 @@ The model dropdown fetches from `/api/profiles/models` on profile change. Edit `
 - **`/api/profiles/models` endpoint** — serves model list per profile
 - **GLM-5.2 integration** — custom provider `UT-GLM5.2` via HPC endpoint (`llm.hpc.ut.ee/v1`)
 - **Bugfix: phantom summary stats** — reports without recorded stats now show `—` instead of fabricated numbers
-- **Worker simplified** — removed Jinja2 template skeleton integration, now uses hardcoded report prompt (more reliable with GLM-5.2); stats counting uses keyword matching instead of icon-based
 
 ### v6.4g
 - **Panels collapsed by default** — sidebar and right panel start closed on every fresh load; state persists via localStorage
