@@ -1,4 +1,4 @@
-# ShipCrawler v7.3 — SSE Reconnection & Live-Task Indicator
+# ShipCrawler v7.3 — Agent Profile & Dynamic Model Selection
 
 <p align="center">
   <img src="static/img/logo.png" alt="ShipCrawler Logo" width="400">
@@ -6,7 +6,7 @@
 
 Maritime OSINT investigation platform that uses autonomous AI agents to identify vulnerabilities, exposed interfaces, and operational patterns on vessels worldwide. Built on the OSINT Maritime Framework methodology (IEEE Access 2026).
 
-Real-time, phase-by-phase AI agent investigation with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection.
+Real-time, phase-by-phase AI agent investigation with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection. Choose per-scan from multiple Hermes agent profiles, each with its own model/provider configuration.
 
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)]()
 [![Language](https://img.shields.io/badge/language-Python-blue?style=flat-square)]()
@@ -24,7 +24,7 @@ cd shipcrawler
 # 2. Python environment
 python3 -m venv venv
 source venv/bin/activate
-pip install flask requests beautifulsoup4 shodan
+pip install flask requests beautifulsoup4 shodan jinja2
 
 # 3. Start dashboard
 python3 app.py
@@ -45,6 +45,7 @@ open http://localhost:9091
 - [Configuration](#configuration)
 - [Running](#running)
 - [Usage](#usage)
+- [Agent Profiles](#agent-profiles)
 - [API Reference](#api-reference)
 - [Architecture](#architecture)
 - [Troubleshooting](#troubleshooting)
@@ -84,7 +85,7 @@ cd shipcrawler
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install flask requests beautifulsoup4 shodan
+pip install flask requests beautifulsoup4 shodan jinja2
 ```
 
 ### Step 3: Install Hermes Agent
@@ -167,8 +168,11 @@ equasis vessel --imo 9237589
 ### Step 8: Verify Shodan
 
 ```bash
+source ~/.hermes/.env
 python3 -c "import shodan; api = shodan.Shodan('$SHODAN_API_KEY'); print(api.info())"
 ```
+
+> **Note:** The worker inherits the environment from the terminal it was launched from. If API keys are set in `~/.hermes/.env`, source it before starting the worker.
 
 ---
 
@@ -184,6 +188,13 @@ python3 app.py
 
 The dashboard runs on **port 9091**. Open `http://localhost:9091` in your browser.
 
+Bind to a specific IP for remote access:
+
+```bash
+# Bind to Tailscale IP for secure remote access
+python3 app.py --host 100.72.133.89
+```
+
 ### Step 10: Start the worker
 
 In a **second terminal**:
@@ -196,21 +207,11 @@ python3 worker.py
 
 The worker polls `queue/pending/` every 2 seconds. When a new search is submitted via the dashboard, the worker:
 1. Moves the task from `pending/` to `running/`
-2. Spawns `hermes chat` with the shipcrawler skill
-3. Streams progress to `queue/progress/<task_id>.log`
+2. Spawns `hermes chat --profile <profile>` with the shipcrawler skill
+3. Streams progress to `queue/progress/<task_id>.log` (JSON Lines)
 4. On completion, saves results to `queue/done/` and writes reports to `~/hermes-vault/osint-reports/<vessel>-report/`
 
-### Running on a remote server
-
-Bind to a specific IP:
-
-```bash
-# Bind to all interfaces (not recommended for production)
-python3 app.py --host 0.0.0.0
-
-# Bind to Tailscale IP for secure remote access
-python3 app.py --host 100.72.133.89
-```
+Queue directories (`pending/`, `running/`, `done/`, `progress/`) are auto-created on first poll if missing.
 
 ---
 
@@ -221,7 +222,9 @@ python3 app.py --host 100.72.133.89
 1. Open `http://localhost:9091`
 2. Enter a vessel name, MMSI, or IMO number in the search box
 3. Select **Vessel OSINT** or **Person OSINT** mode
-4. Click **Search**
+4. Choose an **Agent Profile** — determines which Hermes profile (model/provider) runs the scan
+5. Select a **Model** — dynamically filtered based on the selected agent profile
+6. Click **Search**
 
 The investigation terminal shows real-time progress:
 
@@ -235,6 +238,21 @@ The investigation terminal shows real-time progress:
 | `REPORT` | Report generation |
 | ✅ | Phase completed successfully |
 | ❌ | Phase failed |
+
+### Summary Bar
+
+After completion, the summary bar shows:
+
+| Stat | Description |
+|------|-------------|
+| Phases | Number of investigation phases executed |
+| Duration | Total investigation time in minutes |
+| Reports | Number of report files generated |
+| Tool Calls | Total AI agent tool invocations |
+| Sources | Unique data sources consulted |
+| Searches | Web search queries performed |
+| Shodan | Shodan API queries executed |
+| Model | AI model/provider used for the scan |
 
 ### Understanding Results
 
@@ -255,16 +273,72 @@ The right sidebar (📄 Report Files) lets you browse individual report files:
 
 ### File Outputs
 
-Every investigation creates a directory at `~/hermes-vault/osint-reports/<vessel-name>-report/`:
+Every investigation creates a directory at `~/hermes-vault/osint-reports/<vessel-name>-YYYY-MM-DD-<task_id>-report/`:
 
 ```
 ~/hermes-vault/osint-reports/
-└── <vessel-name>-report/
+└── <vessel-name>-<date>-<task_id>-report/
     ├── analyst-report.md           # Full OSINT findings
     ├── red-team-playbook.md        # Attack scenarios
     ├── indicators-and-detection.md # Detection rules
-    └── raw-output.md               # Full AI agent trace
+    └── raw-output.md               # Full AI agent trace (truncated 100KB)
 ```
+
+---
+
+## Agent Profiles
+
+ShipCrawler supports multiple Hermes agent profiles, each with its own model and provider configuration. Profiles are defined in `~/.hermes/profiles/<name>/config.yaml`.
+
+### Built-in profiles
+
+| Profile | Purpose | Default Model | Provider |
+|---------|---------|---------------|----------|
+| `default` | General purpose | deepseek-v4-flash | deepseek |
+| `local` | Local inference | qwen2.5:3b | custom:ollama |
+| `research` | Research-grade | deepseek-v4-flash | deepseek |
+| `shipcrawler` | Maritime OSINT | glm-5.2 | custom:UT-GLM5.2 |
+
+### Available models per profile
+
+Defined in `profiles-models.json` at the project root. This file maps each profile to a list of compatible models:
+
+```json
+{
+  "shipcrawler": [
+    {"value": "deepseek-v4-flash", "provider": "deepseek", "label": "DeepSeek V4 Flash"},
+    {"value": "glm-5.2", "provider": "custom:UT-GLM5.2", "label": "GLM 5.2"}
+  ]
+}
+```
+
+The `provider` field is passed to Hermes as `--provider` flag. For custom providers (e.g., Ollama, HPC endpoints), use the `custom:<name>` format matching the provider name in the Hermes profile config.
+
+### Adding a custom provider
+
+1. Install Hermes and create a profile:
+   ```bash
+   hermes profile create my-provider
+   ```
+2. Edit `~/.hermes/profiles/my-provider/config.yaml`:
+   ```yaml
+   model:
+     default: my-model
+     provider: custom
+     base_url: https://your-endpoint/v1
+     api_key: your-api-key
+   custom_providers:
+     - name: MY-CUSTOM
+       base_url: https://your-endpoint/v1
+       api_key: your-api-key
+       model: my-model
+   ```
+3. Add models to `profiles-models.json`:
+   ```json
+   "my-provider": [
+     {"value": "my-model", "provider": "custom:MY-CUSTOM", "label": "My Model"}
+   ]
+   ```
 
 ---
 
@@ -278,7 +352,9 @@ Every investigation creates a directory at `~/hermes-vault/osint-reports/<vessel
 | `/api/stream/<task_id>` | GET | SSE stream of phase progress |
 | `/api/report/<task_id>` | GET | Get full report data |
 | `/api/report/by-name/<name>` | GET | Lookup report by vessel/person name |
+| `/api/report/<task_id>` | DELETE | Delete a report |
 | `/api/history` | GET | List all past reports |
+| `/api/profiles/models` | GET | Get available models per agent profile |
 | `/api/health` | GET | Queue health check |
 
 ### Submit a search
@@ -286,7 +362,14 @@ Every investigation creates a directory at `~/hermes-vault/osint-reports/<vessel
 ```bash
 curl -X POST http://localhost:9091/api/search \
   -H "Content-Type: application/json" \
-  -d '{"name": "EVA 316", "mode": "vessel", "context": ""}'
+  -d '{
+    "name": "EVA 316",
+    "mode": "vessel",
+    "context": "",
+    "model": "deepseek-v4-flash",
+    "provider": "deepseek",
+    "profile": "default"
+  }'
 ```
 
 Returns:
@@ -302,10 +385,24 @@ curl -N http://localhost:9091/api/stream/a1b2c3d4
 
 Events: `queued` → `phase_start` → `phase_output` → `phase_complete` → `report_complete` → `done`
 
+### Get available models
+
+```bash
+curl http://localhost:9091/api/profiles/models
+```
+
+Returns a map of profile → model entries with `value`, `provider`, and `label` fields.
+
 ### Get report
 
 ```bash
 curl http://localhost:9091/api/report/a1b2c3d4
+```
+
+### Delete report
+
+```bash
+curl -X DELETE http://localhost:9091/api/report/<task_id>
 ```
 
 ---
@@ -333,38 +430,50 @@ Each phase → AI agent with shipcrawler OSINT skills
 | Component | File | Role |
 |-----------|------|------|
 | **Flask Dashboard** | `app.py` | Web UI, API endpoints, SSE streaming |
-| **Queue Worker** | `worker.py` | Polls queue, spawns AI agents |
+| **API Routes** | `routes/api.py` | REST endpoints, report loading, profile models |
+| **Queue Worker** | `worker.py` | Polls queue, spawns AI agents with `--profile` flag |
 | **Progress Logger** | `worker_progress.py` | JSON Lines log writer/reader |
 | **Report Renderer** | `renderer.py` | Structured report parser |
+| **Template Renderer** | `template_renderer.py` | Jinja2 report skeleton renderer |
+| **Stream Formatter** | `stream_formatter.py` | Cleans raw agent output into SSE events |
 | **Frontend SSE** | `static/js/shipcrawler-sse.js` | EventSource client |
-| **Frontend Core** | `static/js/shipcrawler-core.js` | UI logic, terminal, modals |
-| **Frontend UI** | `static/js/shipcrawler-ui.js` | Theme editor |
+| **Frontend Core** | `static/js/shipcrawler-core.js` | UI logic, terminal, modals, profile→model sync |
+| **Frontend UI** | `static/js/shipcrawler-ui.js` | Theme switcher |
+| **Globe** | `static/js/globe.js` | Three.js particle globe animation |
 
 ### Directory Layout
 
 ```
 shipcrawler/
-├── app.py                    # Flask application
-├── worker.py                 # Queue worker daemon
-├── worker_progress.py        # Progress log writer
-├── renderer.py               # Report renderer
+├── app.py                        # Flask application
+├── worker.py                     # Queue worker daemon
+├── worker_progress.py            # Progress log writer
+├── renderer.py                   # Report renderer
+├── template_renderer.py          # Jinja2 skeleton renderer
+├── stream_formatter.py           # SSE event formatter
+├── profiles-models.json          # Per-profile model list
 ├── routes/
-│   └── api.py                # API route definitions
+│   └── api.py                    # API route definitions
 ├── templates/
-│   └── index.html            # Single-page dashboard
+│   ├── index.html                # Single-page dashboard
+│   ├── vessel-analyst-report.j2        # Report skeleton template
+│   ├── vessel-red-team-playbook.j2     # Red team skeleton template
+│   └── vessel-indicators-and-detection.j2  # Detection rules skeleton
 ├── static/
 │   ├── css/
-│   │   └── shipcrawler.css   # All styles
-│   └── js/
-│       ├── shipcrawler-sse.js    # SSE streaming client
-│       ├── shipcrawler-core.js   # Core UI logic
-│       ├── shipcrawler-ui.js     # Theme editor
-│       └── globe.js              # Three.js globe animation
+│   │   └── shipcrawler.css       # All styles (3 themes via CSS vars)
+│   ├── js/
+│   │   ├── shipcrawler-sse.js    # SSE streaming client
+│   │   ├── shipcrawler-core.js   # Core UI logic
+│   │   ├── shipcrawler-ui.js     # Theme editor
+│   │   └── globe.js              # Three.js globe animation
+│   └── img/
+│       └── logo.png              # Dashboard logo
 └── queue/
-    ├── pending/              # Tasks waiting for worker
-    ├── running/              # Tasks currently being processed
-    ├── progress/             # Phase progress logs
-    └── done/                 # Completed task metadata
+    ├── pending/                  # Tasks waiting for worker
+    ├── running/                  # Tasks currently being processed
+    ├── progress/                 # Phase progress logs
+    └── done/                     # Completed task metadata + stats
 ```
 
 ---
@@ -393,6 +502,8 @@ ls queue/running/
 kill $(pgrep -f worker.py)
 python3 worker.py &
 ```
+
+Queue directories are auto-created on worker start. If migrating from an older install, copy existing `queue/done/*.json` to preserve report stats.
 
 ### "The file was truncated by bash parsing errors"
 
@@ -423,9 +534,25 @@ Ensure all API keys are set in `~/.hermes/.env` and verify with:
 hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 ```
 
+### Agent profile model list not updating
+
+The model dropdown fetches from `/api/profiles/models` on profile change. Edit `profiles-models.json` to add/remove models — no restart needed, the API reads the file on every request.
+
 ---
 
 ## Changelog
+
+### v7.3b
+
+- **Agent Profile dropdown** — choose which Hermes profile (`default`, `local`, `research`, `shipcrawler`) to use for each scan
+- **Dynamic model selection** — model dropdown auto-populates based on selected profile
+- **`profiles-models.json`** — config file mapping profiles to available models (edit to add/remove)
+- **`--profile` flag** — worker passes `--profile <name>` to `hermes chat` for profile-specific config
+- **Custom provider support** — `profiles-models.json` supports `custom:<name>` provider format for HPC/Ollama endpoints
+- **Queue auto-create** — worker automatically creates `pending/`, `running/`, `done/`, `progress/` dirs on first poll
+- **`/api/profiles/models` endpoint** — serves model list per profile
+- **GLM-5.2 integration** — custom provider `UT-GLM5.2` via HPC endpoint (`llm.hpc.ut.ee/v1`)
+- **Bugfix: phantom summary stats** — reports without recorded stats now show `—` instead of fabricated numbers
 
 ### v6.4g
 - **Panels collapsed by default** — sidebar and right panel start closed on every fresh load; state persists via localStorage
@@ -438,10 +565,15 @@ hermes config show | grep -i 'exa\|shodan\|firecrawl\|tavily'
 - **Tool call breakdown** — summary bar shows per-category tool usage (search:5 · shodan:3 · terminal:12) on investigation completion
 
 ### v6.4f
-- **Color theme system** — three presets (Dark, Classic, Oversight) with switcher in nav bar, replacing old color picker modal
-- **Oversight theme** — light beige background with green accents, JetBrains Mono + Inter fonts
+- **Color theme system** — three presets (Dark, Light, Classic) with switcher in nav bar, matching sirb dashboard style (no border pills, transparent background, subtle accent tint on active)
+- **Light theme** — renamed from Oversight, light background with green accents
 - **Classic theme** — dark with green accent palette
 - **Live theme switching** — no reload needed; all panels, terminal, and modal adopt theme instantly
+- **3-column layout** — sidebar | center (hero + terminal + summary) | right (launch panel + globe), matching sirb
+- **Rotating globe** — Three.js particle globe at bottom of right panel
+- **Executive summary** — terminal shows exec summary with warning badges (🔴 SHADOW FLEET, 🟡 SANCTIONED, etc.) when viewing past runs
+- **Terminal welcome message** — shows `$ shipcrawler --status` on landing page
+- **Red SVG favicon** — radar icon in browser tab
 - **SEO & meta enrichment** — Open Graph, Twitter Card, JSON-LD structured data, description, keywords, author, canonical URL, theme-color
 
 ### v6.4e

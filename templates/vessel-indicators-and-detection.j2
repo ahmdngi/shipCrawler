@@ -1,0 +1,130 @@
+{# Vessel Indicators & Detection Rules — skeleton rendered at scan start.
+   The agent fills indicators and rules after research. Known vars: vessel_name,
+   imo, mmsi, callsign, date, report_dir, framework_version. #}
+# {{ vessel_name|upper }} - Indicators and Detection Rules (M-SOC Configuration)
+
+**Target:** {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}{% if mmsi %}, MMSI {{ mmsi }}{% endif %}{% if callsign %}, callsign {{ callsign }}{% endif %}{% endif +%})
+**Operator:** <!-- discovered from Phase 0 -->
+**Context:** <!-- active incident / "routine assessment" -->
+**Date:** {{ date }}
+**Analyst:** AI Agent (ShipCrawler OSINT Framework)
+**Purpose:** Concrete detection artifacts for an M-SOC (Maritime Security Operations Center) to detect the indicators and attack vectors described in analyst-report.md and red-team-playbook.md. All rules reference the specific identifiers of {{ vessel_name|upper }} so they can be dropped into a fleet SIEM and tuned per-vessel.
+
+---
+
+## 1. INDICATOR TABLE
+
+<!-- Agent: Generate 15-25 indicators based on findings from the analyst report.
+     Each indicator references specific vessel identifiers (MMSI, IMO, callsign).
+     Types: AIS anomaly, AIS identity, AIS destination, AIS course, distress signal,
+     satcom metadata, satcom geofence, cellular, VSAT cleartext, domain watch,
+     email auth, smishing, wire fraud, CT log, OSINT, transaction, news/UKMTO,
+     naval, GPS jam, proof-of-life, owner silence, flag history, ownership.
+     Priority: CRITICAL/HIGH/MEDIUM/INFO.
+     Related Vector: V1/V2/V3/Context/All. -->
+
+| ID | Type | Phase | Priority | Description | Related Vector | Source |
+|---|---|---|---|---|---|---|
+| I-001 | <!-- type --> | <!-- phase --> | <!-- priority --> | <!-- description --> | <!-- V1/V2/V3 --> | <!-- source --> |
+| I-002 | | | | | | |
+| I-003 | | | | | | |
+
+---
+
+## 2. ELASTIC SIEM RULES (EQL / KQL / threshold)
+
+<!-- Agent: Write 5-9 Elastic SIEM rules for the highest-priority indicators.
+     Use EQL for sequence-based detection, KQL for query-bar, threshold for counts.
+     Replace placeholder MMSI/IMO with actual values: {% if mmsi %}{{ mmsi }}{% else %}<MMSI>{% endif %}, {% if imo %}{{ imo }}{% else %}<IMO>{% endif %}.
+     Reference indicator IDs (I-001, I-002, etc.) in comments. -->
+
+### 2.1 <!-- Rule name (I-XXX) --> - <!-- EQL/KQL/threshold -->
+
+```
+<!-- Agent: write the SIEM rule here -->
+```
+
+---
+
+## 3. ZEEK SCRIPTS
+
+<!-- Agent: Write 3-5 Zeek scripts for network-level detection.
+     Common scripts: AIS duplicate MMSI, AIS-radar/SAR correlation,
+     VSAT cleartext protocol policy, C2 beacon detection.
+     Include the haversine distance_nm helper if AIS scripts are needed. -->
+
+### 3.1 <!-- Script name (I-XXX) -->
+
+```zeek
+<!-- Agent: write the Zeek script here -->
+```
+
+---
+
+## 4. WAZUH / OSQUERY RULES
+
+<!-- Agent: Write 2-3 Wazuh/osquery rules if applicable.
+     Common: USB device detection on shipboard bridge PC, DMARC email auth failure. -->
+
+### 4.1 <!-- Rule name (I-XXX) -->
+
+```xml
+<!-- Agent: write the Wazuh rule here -->
+```
+
+```sql
+-- Agent: write the osquery pack here if applicable
+```
+
+---
+
+## 5. GRAFANA ALERT RULES + DASHBOARD CONFIG
+
+<!-- Agent: Write Grafana alert rules (YAML) and dashboard JSON for the
+     highest-priority indicators. Include: speed anomaly, AIS stale, course deviation.
+     Dashboard panel types: stat, timeseries, geomap. -->
+
+### 5.1 Alert Rule: <!-- name (I-XXX) -->
+
+```yaml
+<!-- Agent: write the Grafana alert rule here -->
+```
+
+### 5.2 Dashboard JSON (drop-in panel)
+
+```json
+<!-- Agent: write the Grafana dashboard JSON here -->
+```
+
+---
+
+## 6. M-SOC RUNBOOK (triage steps per alert type)
+
+<!-- Agent: Write 5-8 runbook sections, one per alert type from the indicator table.
+     Each section has numbered triage steps: acknowledge, cross-correlate, check feeds,
+     notify parties (owner, flag state, UKMTO, P+I), escalate, log.
+     Reference indicator IDs and detection points (D1-N, D2-N, D3-N). -->
+
+### 6.1 <!-- Alert type (I-XXX) --> - <!-- CRITICAL/HIGH -->
+
+1. **Acknowledge within <!-- time -->.** <!-- action -->
+2. **Cross-correlate.** <!-- action -->
+3. **Check feeds.** <!-- action -->
+4. **Notify:** <!-- parties -->
+5. **Escalate** <!-- conditions -->
+6. **Log:** <!-- what to record -->
+
+---
+
+## 7. RECOMMENDED ONGOING MONITORING
+
+<!-- Agent: List 4-5 ongoing monitoring recommendations:
+     1. Shodan network alert for vessel identifiers
+     2. AIS feed subscription with webhook to SIEM
+     3. CT log monitor for operator lookalike domains
+     4. News/UKMTO webhook
+     5. Post-incident: continue monitoring for 90 days -->
+
+---
+
+*End of Indicators and Detection Rules - {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif %} - {{ date }} - ShipCrawler OSINT Framework v{{ framework_version }}*

@@ -519,8 +519,8 @@ const ShipcrawlerUI = (() => {
         '--color-gold':       'oklch(73% 0.14 75)',
       }
     },
-    oversight: {
-      name: 'Oversight',
+    light: {
+      name: 'Light',
       vars: {
         '--color-paper':      'oklch(93% 0.012 90)',
         '--color-paper-2':    'oklch(89% 0.01 90)',

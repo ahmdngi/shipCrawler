@@ -18,3 +18,5 @@ queue/pending/*.json
 queue/running/*.json
 __pycache__/
 *.pyc
+
+AGENTS.md

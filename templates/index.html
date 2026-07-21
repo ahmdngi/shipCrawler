@@ -52,11 +52,13 @@
 }
 </script>
 
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='none' stroke='%233aa76d' stroke-width='2'/><ellipse cx='50' cy='50' rx='45' ry='18' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.6'/><ellipse cx='50' cy='50' rx='18' ry='45' fill='none' stroke='%233aa76d' stroke-width='1' opacity='0.4'/><path d='M5 50 Q30 30 50 50 Q70 70 95 50' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.5'/><path d='M5 50 Q30 70 50 50 Q70 30 95 50' fill='none' stroke='%233aa76d' stroke-width='1.5' opacity='0.5'/><circle cx='50' cy='50' r='4' fill='%233aa76d'/></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjg1MTQ5IiBzdHJva2Utd2lkdGg9IjIiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjIiIGZpbGw9IiNmODUxNDkiLz48cGF0aCBkPSJNMTIgMnY0TTEyIDE4djRNMiAxMmg0TTE4IDEyaDQiLz48L3N2Zz4=">
+<link rel="apple-touch-icon" href="/static/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/css/shipcrawler.css?v=16">
+<link rel="stylesheet" href="/static/css/shipcrawler.css?v=17">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/static/sw.js');</script>
 </head>
 <body>
@@ -66,22 +68,11 @@
 <!-- ── Sidebar ── -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <span class="sidebar-title">📋 History</span>
+    <h2>Run History</h2>
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="ShipcrawlerCore.toggleSidebar()">◀</button>
   </div>
   <div class="sidebar-list" id="sidebar-list">
-    <div class="sidebar-empty">No searches yet</div>
-  </div>
-</div>
-
-<!-- ── Right Panel (Phase Files) ── -->
-<div class="right-panel" id="right-panel">
-  <div class="right-panel-header">
-    <span class="right-panel-title">📄 Report Files</span>
-    <button class="right-panel-toggle" id="right-panel-toggle" onclick="ShipcrawlerCore.toggleRightPanel()">◀</button>
-  </div>
-  <div class="right-panel-list" id="right-panel-list">
-    <div class="right-panel-empty">No report loaded</div>
+    <div class="run-empty">No searches yet</div>
   </div>
 </div>
 
@@ -90,62 +81,34 @@
 
 <!-- ── Mobile FABs ── -->
 <button class="fab fab-left" id="fab-sidebar" onclick="ShipcrawlerCore.toggleSidebar()">☰</button>
-<button class="fab fab-right" id="fab-right-panel" onclick="ShipcrawlerCore.toggleRightPanel()">📄</button>
 
+<div class="main">
 <nav>
-  <a href="/" class="brand"><img src="/static/img/logo.png" class="brand-logo" alt="ShipCrawler" style="height:32px;width:auto;"> <span>ShipCrawler</span></a>
+  <a href="/" class="brand" onclick="ShipcrawlerCore.goHome(); return false;"><img src="/static/img/logo.png" class="brand-logo" alt="ShipCrawler" style="height:32px;width:auto;"> <span>ShipCrawler</span></a>
   <div class="nav-links">
     <a href="https://github.com/ahmdngi/shipcrawler" target="_blank">GitHub</a>
     <div class="theme-switcher">
       <span class="theme-pill active" data-theme="dark" onclick="ShipcrawlerUI.applyTheme('dark')">Dark</span>
+      <span class="theme-pill" data-theme="light" onclick="ShipcrawlerUI.applyTheme('light')">Light</span>
       <span class="theme-pill" data-theme="classic" onclick="ShipcrawlerUI.applyTheme('classic')">Classic</span>
-      <span class="theme-pill" data-theme="oversight" onclick="ShipcrawlerUI.applyTheme('oversight')">Oversight</span>
     </div>
     <span class="sse-status" id="sse-status">connected</span>
   </div>
 </nav>
 
+<div class="content">
+
+<!-- ── Center Panel: hero + terminal + summary + report ── -->
+<div class="panel">
+
 <section class="hero" id="search-section">
   <div class="hero-badge"><span class="live-dot"></span> ShipCrawler OSINT v7.3</div>
   <h1><span class="accent-gradient">Agentic</span> OSINT Terminal</h1>
   <p>Phase-by-phase agentic investigation. Each phase runs sequentially — watch as the AI agent executes each phase in real-time.</p>
-
-  <div class="mode-toggle" id="mode-toggle">
-    <button class="mode-btn active" data-mode="vessel">🚢 Vessel OSINT</button>
-    <button class="mode-btn" data-mode="person">👤 Person OSINT</button>
-  </div>
-
-  <div class="search-container">
-    <form autocomplete="off" onsubmit="return false" style="display:flex;flex:1;gap:0.5rem;max-width:600px;">
-      <input type="text" style="display:none" aria-hidden="true">
-      <input type="password" style="display:none" aria-hidden="true">
-      <input type="text" id="search-input" placeholder="e.g. vessel name, MMSI, or person name" autocomplete="nope" spellcheck="false" name="srch_xyz">
-      <button id="search-btn" type="button">Search</button>
-    </form>
-  </div>
-
-  <div class="search-container" id="model-container" style="margin-top:0.6rem;max-width:340px;display:flex;gap:0.5rem;align-items:center;">
-    <label for="model-select" style="font-size:0.8rem;color:var(--color-accent);white-space:nowrap;font-weight:500;">🧠 Model:</label>
-    <select id="model-select" style="background:var(--color-paper-2);border:1px solid var(--color-ink-3);border-radius:6px;padding:0.45rem 0.6rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--color-ink-2);outline:none;cursor:pointer;width:auto;min-width:180px;max-width:280px;">
-      <option value="deepseek-v4-flash" data-provider="">DeepSeek V4 Flash</option>
-      <option value="deepseek-v4-pro" data-provider="">DeepSeek V4 Pro</option>
-      <option value="claude-sonnet-4-6" data-provider="anthropic">Claude Sonnet 4.6</option>
-      <option value="claude-opus-4-6" data-provider="anthropic">Claude Opus 4.6</option>
-      <option value="claude-opus-4-8" data-provider="anthropic">Claude Opus 4.8</option>
-      <option value="claude-haiku-4-5" data-provider="anthropic">Claude Haiku 4.5</option>
-      <option value="claude-sonnet-5" data-provider="anthropic">Claude Sonnet 5</option>
-      <option value="claude-fable-5" data-provider="anthropic">Claude Fable 5</option>
-      <option value="mlx-community/Meta-Llama-3.1-8B-Instruct-4bit" data-provider="custom:llama-local">Llama 3.1 8B (local)</option>
-    </select>
-  </div>
-
-  <div class="search-container" id="context-container" style="margin-top:0.6rem;max-width:600px;display:none">
-    <input type="text" id="context-input" placeholder="Context (e.g. PhD at TalTech, @twitterhandle)" style="flex:1;min-width:240px;background:var(--color-paper-2);border:1px solid var(--color-ink-3);border-radius:6px;padding:0.6rem 1rem;font-family:'JetBrains Mono','Fira Code',monospace;font-size:0.85rem;color:var(--color-ink-2);outline:none;transition:border-color 0.2s;">
-  </div>
 </section>
 
-<!-- ── Investigation Terminal ── -->
-<div id="terminal-feed" class="terminal-window" style="display:none;">
+<!-- ── Investigation Terminal (always visible) ── -->
+<div id="terminal-feed" class="terminal-window">
   <div class="terminal-titlebar">
     <div class="terminal-dots">
       <span class="dot dot-red"></span>
@@ -155,8 +118,16 @@
     <span class="terminal-title">investigation.mjs</span>
     <span class="terminal-cmd" id="feed-target"></span>
   </div>
+  <!-- Report file tabs (populated when reports are done, like sirb) -->
+  <div class="report-file-tabs" id="report-file-tabs" style="display:none;"></div>
   <div class="terminal-body" id="feed-body">
-    <div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>
+    <div class="terminal-prompt">
+      <div style="color:var(--color-accent);font-weight:600;">$ shipcrawler --status</div>
+      <div style="margin-top:0.5rem;font-size:0.82rem;line-height:1.6;">ShipCrawler OSINT v7.3 — Maritime vessel reconnaissance</div>
+      <div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">No active investigation. Enter a vessel name, IMO, or MMSI to begin.</div>
+      <div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">Past investigations are available in the left sidebar.</div>
+      <div style="margin-top:0.5rem;color:var(--color-accent);">$ <span class="prompt-cursor">▊</span></div>
+    </div>
   </div>
 </div>
 
@@ -323,15 +294,63 @@
   </div>
 </div>
 
-<footer>Built by Ahmed Nagi Nasr · ShipCrawler v7.2 · AI Agent</footer>
+</div><!-- /panel (center) -->
 
-<!-- md-block for markdown rendering -->
-<script type="module" src="https://md-block.verou.me/md-block.js"></script>
+<!-- ── Right Panel: launch controls (like sirb panel-right) ── -->
+<div class="panel-right">
+  <h3><span style="color:var(--color-accent)">▶</span> Launch Scan</h3>
 
+  <div class="form-group">
+    <label>Mode</label>
+    <div class="mode-toggle" id="mode-toggle">
+      <button class="mode-btn active" data-mode="vessel">🚢 Vessel</button>
+      <button class="mode-btn" data-mode="person">👤 Person</button>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="search-input">Target</label>
+    <form autocomplete="off" onsubmit="return false" style="display:flex;flex-direction:column;gap:0.5rem;">
+      <input type="text" style="display:none" aria-hidden="true">
+      <input type="password" style="display:none" aria-hidden="true">
+      <input type="text" id="search-input" placeholder="vessel name, MMSI, or person" autocomplete="nope" spellcheck="false" name="srch_xyz">
+      <button id="search-btn" type="button">▶ Search</button>
+    </form>
+  </div>
+
+  <div class="form-group" id="profile-container">
+    <label for="profile-select">Profile</label>
+    <select id="profile-select">
+      <option value="">default</option>
+      <option value="local">local</option>
+      <option value="research">research</option>
+      <option value="shipcrawler">shipcrawler</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="model-container">
+    <label for="model-select">Model</label>
+    <select id="model-select">
+      <option value="">Loading models...</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="context-container" style="display:none">
+    <label for="context-input">Context</label>
+    <input type="text" id="context-input" placeholder="e.g. PhD at TalTech, @handle">
+  </div>
+  <hr style="border-color:var(--color-ink-3);margin:1em 0;" />
+  <div id="globe-container" style="position:sticky;bottom:0;width:100%;height:200px;border-radius:8px;overflow:hidden;margin-top:auto;"></div>
+</div><!-- /panel-right -->
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<footer style="text-align:center;padding:0.5rem;font-size:0.7rem;color:var(--color-ink-3);border-top:1px solid var(--color-ink-3);">Built by Ahmed Nagi Nasr · ShipCrawler v7.3 · AI Agent</footer>
 
 <script src="/static/js/shipcrawler-sse.js?v=15"></script>
-<script src="/static/js/shipcrawler-core.js?v=26"></script>
-<script src="/static/js/shipcrawler-ui.js?v=13"></script>
+<script src="/static/js/shipcrawler-core.js?v=30"></script>
+<script src="/static/js/shipcrawler-ui.js?v=14"></script>
 <script>
 // Health check — update connection status indicator
 (function() {

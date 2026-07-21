@@ -1,0 +1,155 @@
+{# Vessel Red-Team Playbook — skeleton rendered at scan start.
+   The agent fills each vector after research. Known vars: vessel_name, imo, mmsi,
+   callsign, date, report_dir, framework_version. #}
+# {{ vessel_name|upper }} - Red-Team Playbook
+
+**Target:** {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif %}{% if mmsi %}, MMSI {{ mmsi }}{% endif %}{% if callsign %}, callsign {{ callsign }}{% endif +%}
+**Operator:** <!-- discovered from Phase 0 -->
+**Context:** <!-- active incident / operational context / "routine assessment" -->
+**Date:** {{ date }}
+**Analyst:** AI Agent (ShipCrawler OSINT Framework)
+**Classification:** DEFENSIVE TRAINING USE - attack scenarios designed for M-SOC detection-rule development and tabletop exercises. No offensive action is authorized or described beyond conceptual kill-chain mapping.
+
+---
+
+## SCENARIO SELECTION RATIONALE
+
+<!-- Agent: Explain why these vectors were chosen based on the vessel's profile:
+     - Age, type, flag, ownership structure
+     - Shodan attack surface (or lack thereof)
+     - Operational route and port-call pattern
+     - Any active incidents
+     Cover: (a) cyber-physical vectors, (b) comms/supply-chain vectors, (c) social-engineering vectors. -->
+
+---
+
+## VECTOR 1 - <!-- Agent: name the highest-probability vector -->
+
+**Vector Name:** <!-- descriptive name -->
+**Difficulty:** <!-- LOW/MEDIUM/HIGH (with cost rationale) -->
+**Cost Estimate:** $<!-- range -->
+**Detection Probability (by M-SOC):** <!-- LOW/MEDIUM/HIGH -->
+**Detection Probability (by naval forces):** <!-- LOW/MEDIUM/HIGH (if applicable) -->
+**Threat Actor Profile:** <!-- who would execute this and why -->
+
+### Equipment List
+
+| Item | Purpose | Est. Cost |
+|---|---|---|
+| <!-- item --> | | $<!-- cost --> |
+
+### Execution Steps (Conceptual - Kill-Chain Mapping)
+
+<!-- Agent: 5-7 numbered steps. Each step references specific identifiers discovered
+     in the analyst report (MMSI, IMO, callsign, route, port names).
+     This is CONCEPTUAL — for defensive detection development only. -->
+
+1. **Recon (OSINT):** <!-- what public data enables this step -->
+2. <!-- step -->
+3. <!-- step -->
+4. <!-- step -->
+5. <!-- step -->
+6. <!-- step -->
+7. <!-- step -->
+
+### Detection Points Table
+
+| # | Detection Point | Signal to Look For | Tool / M-SOC Layer |
+|---|---|---|---|
+| D1-1 | | | |
+| D1-2 | | | |
+| D1-3 | | | |
+| D1-4 | | | |
+| D1-5 | | | |
+
+---
+
+## VECTOR 2 - <!-- Agent: name the second vector -->
+
+**Vector Name:** <!-- descriptive name -->
+**Difficulty:** <!-- LOW/MEDIUM/HIGH -->
+**Cost Estimate:** $<!-- range -->
+**Detection Probability (by M-SOC):** <!-- LOW/MEDIUM/HIGH -->
+**Threat Actor Profile:** <!-- who would execute this and why -->
+
+### Equipment List
+
+| Item | Purpose | Est. Cost |
+|---|---|---|
+| <!-- item --> | | $<!-- cost --> |
+
+### Execution Steps (Conceptual)
+
+1. <!-- step -->
+2. <!-- step -->
+3. <!-- step -->
+4. <!-- step -->
+5. <!-- step -->
+
+### Detection Points Table
+
+| # | Detection Point | Signal to Look For | Tool / M-SOC Layer |
+|---|---|---|---|
+| D2-1 | | | |
+| D2-2 | | | |
+| D2-3 | | | |
+| D2-4 | | | |
+| D2-5 | | | |
+
+---
+
+## VECTOR 3 - <!-- Agent: name the third vector -->
+
+**Vector Name:** <!-- descriptive name -->
+**Difficulty:** <!-- LOW/MEDIUM/HIGH -->
+**Cost Estimate:** $<!-- range -->
+**Detection Probability (by M-SOC):** <!-- LOW/MEDIUM/HIGH -->
+**Threat Actor Profile:** <!-- who would execute this and why -->
+
+### Equipment List
+
+| Item | Purpose | Est. Cost |
+|---|---|---|
+| <!-- item --> | | $<!-- cost --> |
+
+### Execution Steps (Conceptual)
+
+1. <!-- step -->
+2. <!-- step -->
+3. <!-- step -->
+4. <!-- step -->
+5. <!-- step -->
+
+### Detection Points Table
+
+| # | Detection Point | Signal to Look For | Tool / M-SOC Layer |
+|---|---|---|---|
+| D3-1 | | | |
+| D3-2 | | | |
+| D3-3 | | | |
+| D3-4 | | | |
+| D3-5 | | | |
+
+---
+
+## INTEGRATED KILL CHAIN (how Vectors 1+2+3 combine)
+
+<!-- Agent: Show how the three vectors combine into a kill-chain flow.
+     Number the steps showing which vector feeds which.
+     Include time-to-detect targets for M-SOC (success criteria per vector). -->
+
+---
+
+## SUCCESS CRITERIA (RED-TEAM EXERCISE)
+
+| Objective | Success = Detect within | Current Likelihood |
+|---|---|---|
+| <!-- objective from V1 --> | <!-- time --> | <!-- LOW/MEDIUM/HIGH --> |
+| <!-- objective from V2 --> | | |
+| <!-- objective from V3 --> | | |
+| <!-- objective from V3 --> | | |
+| <!-- objective from V3 --> | | |
+
+---
+
+*End of Red-Team Playbook - {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif %} - {{ date }} - ShipCrawler OSINT Framework v{{ framework_version }}*

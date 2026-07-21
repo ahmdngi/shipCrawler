@@ -45,6 +45,13 @@ const ShipcrawlerCore = (() => {
       });
     });
 
+    // Profile → model sync
+    var profileSelect = document.getElementById('profile-select');
+    if (profileSelect) {
+      profileSelect.addEventListener('change', loadProfileModels);
+    }
+    loadProfileModels();
+
     els.btn.addEventListener('click', doSearch);
     els.input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
     els.input.focus();
@@ -60,8 +67,7 @@ const ShipcrawlerCore = (() => {
     // Restore sidebar state + load history — both panels default to closed
     var sidebarOpen = localStorage.getItem('shipcrawler-sidebar-open') === 'true';
     if (!sidebarOpen) { document.getElementById('sidebar').classList.add('closed'); document.body.classList.add('sidebar-closed'); document.getElementById('sidebar-toggle').textContent = '▶'; }
-    var rightPanelOpen = localStorage.getItem('shipcrawler-right-panel-open') === 'true';
-    if (!rightPanelOpen) { document.getElementById('right-panel').classList.add('closed'); document.body.classList.add('right-panel-closed'); document.getElementById('right-panel-toggle').textContent = '▶'; }
+    // Right panel removed — report files now show as tabs in the terminal
     // Ensure overlay hidden on load (panels closed by default)
     var overlay = document.getElementById('sidebar-overlay');
     if (overlay) overlay.classList.remove('active');
@@ -322,8 +328,7 @@ const ShipcrawlerCore = (() => {
     var modelEl = id('summary-model');
     if (modelEl) {
       var m = data && data.model;
-      var p = data && data.provider;
-      modelEl.textContent = m ? (p ? p + '/' + m : m) : '—';
+      modelEl.textContent = m ? m : '—';
     }
   }
 
@@ -393,6 +398,8 @@ const ShipcrawlerCore = (() => {
         var provider = modelSelect && modelSelect.options[modelSelect.selectedIndex]
           ? modelSelect.options[modelSelect.selectedIndex].getAttribute('data-provider') || null
           : null;
+        var profileSelect = document.getElementById('profile-select');
+        var profile = profileSelect ? profileSelect.value || null : null;
 
         var resp = await fetch('/api/search', {
           method: 'POST',
@@ -403,6 +410,7 @@ const ShipcrawlerCore = (() => {
             context: els.contextInput ? els.contextInput.value.trim() : '',
             model: model,
             provider: provider,
+            profile: profile,
           }),
         });
 
@@ -642,6 +650,25 @@ const ShipcrawlerCore = (() => {
   }
 
   // ── Sidebar History ──────────────────────────────────────
+  function goHome() {
+    // Show hero, scroll to top of panel
+    var hero = document.getElementById('search-section');
+    if (hero) hero.style.display = '';
+    var panel = document.querySelector('.panel');
+    if (panel) panel.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Reset terminal to welcome message
+    var feed = document.getElementById('feed-body');
+    if (feed) feed.innerHTML = '<div class="terminal-prompt"><div style="color:var(--color-accent);font-weight:600;">$ shipcrawler --status</div><div style="margin-top:0.5rem;font-size:0.82rem;line-height:1.6;">ShipCrawler OSINT v7.3 — Maritime vessel reconnaissance</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">No active investigation. Enter a vessel name, IMO, or MMSI to begin.</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">Past investigations are available in the left sidebar.</div><div style="margin-top:0.5rem;color:var(--color-accent);">$ <span class="prompt-cursor">▊</span></div></div>';
+    // Hide report section, summary, file tabs
+    var rs = document.getElementById('report-section');
+    if (rs) rs.classList.remove('visible');
+    var fs = document.getElementById('final-summary');
+    if (fs) fs.style.display = 'none';
+    var ft = document.getElementById('report-file-tabs');
+    if (ft) { ft.style.display = 'none'; ft.innerHTML = ''; }
+  }
+
   function toggleSidebar() {
     var sb = document.getElementById('sidebar');
     var isClosed = sb.classList.toggle('closed');
@@ -676,7 +703,7 @@ const ShipcrawlerCore = (() => {
           // Don't auto-load the latest report — keep a clean landing page
         } else {
           var list = document.getElementById('sidebar-list');
-          if (list) list.innerHTML = '<div class="sidebar-empty">No searches yet</div>';
+          if (list) list.innerHTML = '<div class="run-empty">No searches yet</div>';
         }
       })
       .catch(function() {
@@ -689,7 +716,7 @@ const ShipcrawlerCore = (() => {
           } catch(e) {}
         }
         var list = document.getElementById('sidebar-list');
-        if (list) list.innerHTML = '<div class="sidebar-empty">Could not load history</div>';
+        if (list) list.innerHTML = '<div class="run-empty">Could not load history</div>';
       });
   }
 
@@ -702,20 +729,25 @@ const ShipcrawlerCore = (() => {
   function renderHistory(tasks) {
     var list = document.getElementById('sidebar-list');
     if (!list) return;
-    if (!tasks || tasks.length === 0) { list.innerHTML = '<div class=\"sidebar-empty\">No searches yet</div>'; return; }
+    if (!tasks || tasks.length === 0) { list.innerHTML = '<div class=\"run-empty\">No searches yet</div>'; return; }
     var html = '';
     for (var i = 0; i < tasks.length; i++) {
       var t = tasks[i];
       var timeStr = new Date(t.timestamp || Date.now()).toLocaleString();
       var icon = t.mode === 'person' ? '👤' : '🚢';
       var active = (t.task_id === (currentReport && currentReport.task_id)) ? ' active' : '';
-      html += '<div class="sidebar-item' + active + '" data-task-id="' + t.task_id + '">' +
-        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" data-name="' + escapeHtml(t.name || 'Unknown') + '" title="Delete report">🗑️</button>' +
-        '<div class="sidebar-item-name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
-        '<div class="sidebar-item-meta"><span>' + icon + ' ' + (t.mode || 'vessel') + '</span><span>' + timeStr + '</span></div></div>';
+      // Meta line: model + date/time — no redundant mode icon (already on name line)
+      var metaParts = [];
+      if (t.model) metaParts.push(t.model);
+      metaParts.push(timeStr);
+      var metaHtml = '<span>' + metaParts.join(' · ') + '</span>';
+      html += '<div class="run-item' + active + '" data-task-id="' + t.task_id + '">' +
+        '<button class="sidebar-delete" data-task-id="' + t.task_id + '" data-name="' + escapeHtml(t.name || 'Unknown') + '" title="Delete report">🗑</button>' +
+        '<div class="name">' + icon + ' ' + escapeHtml(t.name || 'Unknown') + '</div>' +
+        '<div class="date">' + metaHtml + '</div></div>';
     }
     list.innerHTML = html;
-    var items = list.querySelectorAll('.sidebar-item');
+    var items = list.querySelectorAll('.run-item');
     for (var i = 0; i < items.length; i++) {
       items[i].addEventListener('click', function(e) {
         if (e.target.classList.contains('sidebar-delete')) return;
@@ -777,15 +809,21 @@ const ShipcrawlerCore = (() => {
             var parts = data.report_dir.replace(/\/+$/, '').split('/');
             data.task_id = parts[parts.length - 1];
           }
+          // Hide hero, show report + terminal
+          var hero = document.getElementById('search-section');
+          if (hero) hero.style.display = 'none';
+          if (els.feed) els.feed.style.display = 'block';
           if (els.reportSection) els.reportSection.classList.add('visible');
           if (els.reportTs) els.reportTs.textContent = new Date().toLocaleString();
           displayReport(data);
-          // Update summary bar with history data
+          setTimeout(function() { showExecSummary(data); }, 100);
           updateSummaryBar(data);
           renderToolCounts(data);
           var stored = localStorage.getItem('shipcrawler-history');
           renderHistory(stored ? JSON.parse(stored) : []);
           populateRightPanel(data);
+          // Scroll terminal into view
+          if (els.feed) els.feed.scrollIntoView({ behavior:'smooth', block:'start' });
         })
         .catch(function(err) {
           onError('Could not load report: ' + err.message);
@@ -803,13 +841,42 @@ const ShipcrawlerCore = (() => {
     }
   }
 
+  function showExecSummary(data) {
+    var reportText = '';
+    if (data.report_files && data.report_files['analyst-report.md']) {
+      reportText = data.report_files['analyst-report.md'];
+    } else if (data.phase_contents) {
+      for (var k in data.phase_contents) {
+        if (k.indexOf('analyst') >= 0) { reportText = data.phase_contents[k]; break; }
+      }
+    }
+    if (!reportText) return;
+    var m = reportText.match(/##\s*\d*\.?\s*(?:EXECUTIVE\s*)?SUMMARY\s*\n([\s\S]*?)(?:\n##|\n---|\n\*\*Overall)/i);
+    if (!m) return;
+    var summary = m[1].trim().split('\n\n')[0].trim().replace(/\*\*/g,'').replace(/\[.*?\]/g,'').substring(0,500);
+    var warnings = [];
+    if (/shadow\s*fleet|dark\s*fleet/i.test(reportText)) warnings.push('🔴 SHADOW FLEET');
+    if (/sanctioned|sanctions/i.test(reportText)) warnings.push('🟡 SANCTIONED');
+    if (/AIS\s*shutdown|AIS\s*dark|AIS\s*off/i.test(reportText)) warnings.push('🟠 AIS DARK');
+    if (/kinetic|drone|attack|strike/i.test(reportText)) warnings.push('💥 KINETIC THREAT');
+    if (/casualty|repairing/i.test(reportText)) warnings.push('⚠️ IN CASUALTY');
+    var vesselName = (data.vessel && data.vessel.name) || data.task_id || 'Vessel';
+    var html = '<div style="font-family:JetBrains Mono,Fira Code,monospace;font-size:0.82rem;line-height:1.6;padding:0.5rem;">';
+    html += '<div style="color:var(--color-accent);font-weight:600;margin-bottom:0.5rem;">$ shipcrawler --summary</div>';
+    html += '<div style="margin-bottom:0.75rem;padding:0.5rem;border-left:3px solid '+(warnings.length?'var(--color-red)':'var(--color-green)')+';background:var(--color-paper-2);border-radius:0 6px 6px 0;">';
+    html += '<div style="font-weight:600;color:var(--color-accent);">'+vesselName+'</div>';
+    if (warnings.length) html += '<div style="margin:0.3rem 0;">'+warnings.join('  ')+'</div>';
+    html += '<div style="color:var(--color-ink-2);margin-top:0.2rem;">'+summary+'...</div></div></div>';
+    var body = document.getElementById('feed-body');
+    if (body) body.innerHTML = html;
+  }
+
   // Override loadReport to also save to history
   var _origLoadReport = loadReport;
   loadReport = function(taskId) {
     fetch('/api/report/' + taskId)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        // Normalize task_id to report directory name for consistent history matching
         if (data.report_dir) {
           var parts = data.report_dir.replace(/\/+$/, '').split('/');
           data.task_id = parts[parts.length - 1];
@@ -818,24 +885,22 @@ const ShipcrawlerCore = (() => {
         saveToHistory({ task_id: data.task_id, name: _currentQuery || data.task_id.replace('-report', '').replace(/-/g, ' '), mode: currentMode, timestamp: Date.now() });
         if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
         if (els.input) els.input.value = '';
-        setTimeout(function() { displayReport(data); populateRightPanel(data); }, 300);
+        // Hide hero, scroll to terminal
+        var hero = document.getElementById('search-section');
+        if (hero) hero.style.display = 'none';
+        setTimeout(function() {
+          displayReport(data);
+          setTimeout(function() { showExecSummary(data); }, 100);
+          populateRightPanel(data);
+          if (els.feed) els.feed.scrollIntoView({ behavior:'smooth', block:'start' });
+        }, 300);
       })
       .catch(function(err) { onError('Failed to load report: ' + err.message); });
   };
 
-  // ── Right Panel ───────────────────────────────────────────
-  function toggleRightPanel() {
-    var rp = document.getElementById('right-panel');
-    var isClosed = rp.classList.toggle('closed');
-    document.body.classList.toggle('right-panel-closed', isClosed);
-    localStorage.setItem('shipcrawler-right-panel-open', String(!isClosed));
-    document.getElementById('right-panel-toggle').textContent = isClosed ? '▶' : '◀';
-  }
+  // Right panel removed — report file tabs are now in the terminal
 
   function populateRightPanel(data) {
-    var list = document.getElementById('right-panel-list');
-    if (!list) return;
-
     // Try report_files first (clean report files from API), then phase_contents
     var files = {};
     if (data.report_files && Object.keys(data.report_files).length > 0) {
@@ -852,7 +917,7 @@ const ShipcrawlerCore = (() => {
       'indicators-and-detection.md': '🔍 Detection Rules',
     };
     for (var key in files) {
-      if (key === 'raw-output' || key === 'raw-output.md') continue;
+      if (key === 'raw-output' || key === 'raw-output.md' || key === 'agent.log') continue;
       var matched = false;
       for (var nice in niceNames) {
         if (key === nice || key.replace(/\.[^/.]+$/, '') === nice.replace(/\.[^/.]+$/, '') || key === nice.replace('.md', '')) {
@@ -871,32 +936,62 @@ const ShipcrawlerCore = (() => {
     if (keys.length === 0) {
       keys = Object.keys(files);
       for (var i = 0; i < keys.length; i++) {
+        if (keys[i] === 'raw-output.md' || keys[i] === 'agent.log') continue;
         reportFiles[keys[i]] = { label: keys[i].replace(/^phase-\d+-/, '').replace(/-/g, ' ').substring(0, 30), content: files[keys[i]] };
       }
     }
+    keys = Object.keys(reportFiles);
     if (keys.length === 0) {
       keys = ['analyst-report'];
       reportFiles['analyst-report'] = { label: '📋 Analyst Report', content: data.content || 'No content' };
     }
 
-    var html = '';
-    // Store report content in a map by filename (avoids data-* truncation)
-    var _reportContentMap = {};
-    // ... in populateRightPanel:
-    for (var i = 0; i < keys.length; i++) {
-      var rf = reportFiles[keys[i]];
-      _reportContentMap[keys[i]] = rf.content || '';
-      html += '<div class="right-panel-item" data-key="' + keys[i] + '">' + rf.label + '</div>';
-    }
-    list.innerHTML = html || '<div class="right-panel-empty">No report files</div>';
-
-    var items = list.querySelectorAll('.right-panel-item');
-    for (var i = 0; i < items.length; i++) {
-      items[i].addEventListener('click', function() {
-        list.querySelectorAll('.right-panel-item').forEach(function(el) { el.classList.remove('active'); });
-        this.classList.add('active');
-        var key = this.dataset.key || this.textContent.trim();
-        showPhaseModal(this.textContent.trim(), _reportContentMap[key] || '');
+    // Populate report file tabs in the terminal (like sirb)
+    var tabBar = document.getElementById('report-file-tabs');
+    if (tabBar && keys.length > 0) {
+      var tabHtml = '<button class="report-file-tab active" data-mode="terminal">📡 Terminal</button>';
+      for (var j = 0; j < keys.length; j++) {
+        tabHtml += '<button class="report-file-tab" data-key="' + keys[j] + '">' + reportFiles[keys[j]].label + '</button>';
+      }
+      tabBar.innerHTML = tabHtml;
+      tabBar.style.display = 'flex';
+      // Store content map for tab clicks
+      window._reportFileContent = {};
+      for (var k = 0; k < keys.length; k++) {
+        window._reportFileContent[keys[k]] = reportFiles[keys[k]].content || '';
+      }
+      // Reset terminal view: clear stale report markdown from previous run.
+      // The Terminal tab is active by default, so feed-body must show the
+      // terminal prompt, not the previous run's rendered report content.
+      window._cachedFeedHtml = null;
+      var feedBody = document.getElementById('feed-body');
+      if (feedBody) {
+        feedBody.innerHTML = '<div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>';
+      }
+      // Wire tab clicks
+      tabBar.querySelectorAll('.report-file-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          tabBar.querySelectorAll('.report-file-tab').forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          var mode = this.dataset.mode;
+          var key = this.dataset.key;
+          var feedBody = document.getElementById('feed-body');
+          if (mode === 'terminal') {
+            if (window._cachedFeedHtml) {
+              feedBody.innerHTML = window._cachedFeedHtml;
+            } else {
+              feedBody.innerHTML = '<div class="terminal-prompt">$ <span class="prompt-cursor">▊</span></div>';
+            }
+          } else if (key && window._reportFileContent[key]) {
+            if (!window._cachedFeedHtml) window._cachedFeedHtml = feedBody.innerHTML;
+            if (typeof marked !== 'undefined') {
+              feedBody.innerHTML = '<div class="md-content" style="padding:0.5rem;">' + marked.parse(window._reportFileContent[key]) + '</div>';
+            } else {
+              feedBody.textContent = window._reportFileContent[key];
+            }
+            feedBody.scrollTop = 0;
+          }
+        });
       });
     }
   }
@@ -911,16 +1006,18 @@ const ShipcrawlerCore = (() => {
     modal.innerHTML = '<div class="modal-content" style="max-width:1200px;max-height:85vh;">' +
       '<button class="close-btn" onclick="this.parentElement.parentElement.remove()">✕</button>' +
       '<h3 style="color:var(--color-accent);margin-bottom:0.5rem;">📄 ' + escapeHtml(name) + '</h3>' +
-      '<div class="markdown-body" style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;font-size:0.82rem;line-height:1.6;"></div></div>';
+      '<div class="md-content" style="background:var(--color-paper-3);padding:1rem;border-radius:6px;overflow:auto;max-height:65vh;"></div></div>';
     // Close on click outside content
     modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
     document.body.appendChild(modal);
 
-    // Append md-block with raw markdown as textContent (safe from XSS)
-    var body = modal.querySelector('.markdown-body');
-    var mdBlock = document.createElement('md-block');
-    mdBlock.textContent = content || '';
-    body.appendChild(mdBlock);
+    // Render markdown with marked
+    var body = modal.querySelector('.md-content');
+    if (typeof marked !== 'undefined') {
+      body.innerHTML = marked.parse(content || '');
+    } else {
+      body.textContent = content || '';
+    }
   }
 
   function renderMarkdown(md) {
@@ -994,9 +1091,43 @@ const ShipcrawlerCore = (() => {
     return '<p style="margin:0.5rem 0;">' + html + '</p>';
   }
 
+  // ─── Dynamic model list per profile ──────────────────────────────
+
+  async function loadProfileModels() {
+    var sel = document.getElementById('profile-select');
+    var modelSel = document.getElementById('model-select');
+    if (!modelSel) return;
+    var profile = sel ? sel.value : '';
+
+    // Clear current options
+    modelSel.innerHTML = '<option value="">Loading...</option>';
+    modelSel.disabled = true;
+
+    try {
+      var resp = await fetch('/api/profiles/models', { signal: AbortSignal.timeout(5000) });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var allModels = await resp.json();
+      var models = allModels[profile] || allModels[''] || [];
+
+      modelSel.innerHTML = '';
+      models.forEach(function(m) {
+        var opt = document.createElement('option');
+        opt.value = m.value;
+        opt.setAttribute('data-provider', m.provider || '');
+        opt.textContent = m.label;
+        modelSel.appendChild(opt);
+      });
+      modelSel.disabled = false;
+    } catch (e) {
+      modelSel.innerHTML = '<option value="">Error loading models</option>';
+      modelSel.disabled = true;
+      console.error('loadProfileModels:', e);
+    }
+  }
+
   return {
     init: init, doSearch: doSearch, exportReport: exportReport,
-    toggleSidebar: toggleSidebar, toggleRightPanel: toggleRightPanel,
+    toggleSidebar: toggleSidebar, goHome: goHome,
     getCurrentMode: function() { return currentMode; },
     getCurrentReport: function() { return currentReport; },
     escapeHtml: escapeHtml,

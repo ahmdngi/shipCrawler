@@ -1,0 +1,294 @@
+{# Vessel OSINT Analyst Report — skeleton rendered at scan start.
+   The agent fills each section after research. Known vars: vessel_name, date,
+   report_dir, framework_version. Everything else is discovered by the agent. #}
+# {{ vessel_name|upper }} — Vessel OSINT Analyst Report
+
+**Target:** {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif +%}
+**Investigation Date:** {{ date }}
+**Analyst:** AI Agent (ShipCrawler OSINT Framework)
+**Framework Reference:** Nasr et al., "A Proactive Defense: An Open-Source Intelligence (OSINT) Framework for Maritime Cybersecurity," IEEE Access, vol. 14, 2026. DOI: 10.1109/ACCESS.2026.3673557
+**Report Directory:** `{{ report_dir }}/`
+
+---
+
+## EXECUTIVE SUMMARY
+
+<!-- Agent: Write 2-3 paragraph executive summary covering:
+     - Vessel identity (name, IMO, type, flag, age, operator)
+     - Current status / key finding (position, incident, anomaly)
+     - Overall risk tier with justification
+     - Key attack-surface verdict
+     - Dark-fleet / sanctions indicators if present -->
+
+---
+
+## PHASE 0 — VESSEL IDENTITY (Equasis / Registry)
+
+<!-- Agent: Use equasis-cli for IMO lookup. If rate-limited, wait 30-60s and retry.
+     If credentials missing, fall back to AIS aggregators (VesselFinder, MyShipTracking,
+     MaritimeOptima, MagicPort, Vesseltracker, Baltic Shipping). Document any blocks. -->
+
+### 0.1 Core Identity
+
+| Field | Value | Confidence |
+|---|---|---|
+| **Current Name** | {{ vessel_name|upper }} | <!-- HIGH/MEDIUM/LOW --> |
+| **IMO Number** | {{ imo if imo else "<!-- discovered -->" }} | <!-- HIGH (n sources) --> |
+| **MMSI** | {{ mmsi if mmsi else "<!-- discovered -->" }} | |
+| **Call Sign** | {{ callsign if callsign else "<!-- discovered -->" }} | |
+| **Flag** | <!-- discovered --> | |
+| **Ship Type** | <!-- discovered --> | |
+| **AIS Type** | <!-- discovered --> | |
+| **Year Built** | <!-- discovered --> | |
+| **Builder** | <!-- discovered --> | |
+| **Gross Tonnage** | <!-- discovered --> | |
+| **Deadweight (DWT)** | <!-- discovered --> | |
+| **LOA** | <!-- discovered --> | |
+| **Beam** | <!-- discovered --> | |
+| **Summer Draught** | <!-- discovered --> | |
+| **Class Society** | <!-- discovered --> | |
+| **P&I Club** | <!-- discovered --> | |
+| **Last Survey / Next Survey** | <!-- discovered --> | |
+
+### 0.2 Registered Owner / Manager / ISM
+
+| Role | Entity | Confidence |
+|---|---|---|
+| **Commercial Manager** | <!-- discovered --> | |
+| **Registered Owner** | <!-- discovered --> | |
+| **ISM Manager** | <!-- discovered --> | |
+| **Operator** | <!-- discovered --> | |
+
+<!-- Agent: Note ownership structure. Single-entity owner=operator is a dark-fleet indicator. -->
+
+### 0.3 Name & Flag History (Ownership Chain)
+
+<!-- Agent: Reconstruct from VesselFinder history + Baltic Shipping + MyShipTracking.
+     Table format: Year | Flag | Vessel Name | Notes -->
+
+| Year | Flag | Vessel Name | Notes |
+|---|---|---|---|
+| <!-- discovered --> | | | |
+
+<!-- Agent: Note any historical identity (previous names, Russian origin, NSR history, prior incidents). -->
+
+### 0.4 Identity Confidence Summary
+
+<!-- Agent: Summarize confidence per identity category:
+     - Identity (name/IMO/MMSI/callsign): HIGH/MEDIUM/LOW — basis
+     - Ownership: HIGH/MEDIUM/LOW — basis
+     - Flag history: HIGH/MEDIUM/LOW — basis
+     - Equasis PSC/inspection/class: BLOCKED/HIGH/MEDIUM/LOW — basis
+     Note any data gaps and recommend follow-up (e.g. equasis configure --setup). -->
+
+---
+
+## PHASE 1 — TARGET IDENTIFICATION (AIS / Position / Port Calls)
+
+### 1.1 Current Position & Voyage (as of {{ date }})
+
+| Field | Value | Source |
+|---|---|---|
+| **Reported Area** | <!-- discovered --> | |
+| **Last AIS position** | <!-- lat/long + timestamp --> | |
+| **Current Speed** | <!-- knots --> | |
+| **Reported Destination** | <!-- discovered --> | |
+| **ETA (filed)** | <!-- discovered --> | |
+| **Course/Heading** | <!-- degrees --> | |
+| **Current Draught** | <!-- meters --> | |
+| **Navigation Status** | <!-- discovered --> | |
+
+<!-- Agent: Note position-source conflicts (terrestrial vs satellite AIS, stale fixes).
+     Treat precise coordinates with appropriate confidence; regional location may be HIGH
+     while precise lat/long is LOW. -->
+
+### 1.2 Incident Timeline (if applicable)
+
+<!-- Agent: If vessel is involved in an active incident (hijack, accident, sanction event),
+     include a timeline table: Date/Time (UTC) | Event | Source.
+     If no active incident, state "No active incidents identified" and omit this section. -->
+
+### 1.3 Recent Port Call History
+
+| Port | Arrival (UTC) | Departure (UTC) | Duration | Source |
+|---|---|---|---|---|
+| <!-- discovered --> | | | | |
+
+<!-- Agent: Identify most visited ports, operational pattern (home zone, recurring routes).
+     Flag sanctions-evasive routes. Short port stays = product-tanker load/discharge cycles. -->
+
+### 1.4 Speed Profile & Operational Pattern
+
+| Metric | Value | Source |
+|---|---|---|
+| **AVG Speed (last voyage)** | <!-- knots --> | |
+| **MAX Speed** | <!-- knots --> | |
+| **Service Speed (design)** | <!-- knots --> | |
+| **Distance travelled (last leg)** | <!-- nm --> | |
+
+<!-- Agent: Analyze operational pattern — home zone, recurring route, anchorage vs moored ratio.
+     Flag anomalies (speed, destination changes, coverage gaps). -->
+
+---
+
+## PHASE 2 — ATTACK SURFACE DISCOVERY (Shodan)
+
+<!-- Agent: Query Shodan REST API (api.shodan.io/shodan/host/search).
+     Search by: vessel name, MMSI, IMO, call sign, operator name.
+     Also run maritime protocol queries: Signal K, VSAT, NMEA, ECDIS, AIS receivers.
+     Report zero findings explicitly — absence is a finding.
+     Note false positives (e.g. Incapsula CDN X-Iinfo header matching IMO number). -->
+
+### 2.1 Vessel-Specific Shodan Queries
+
+| Query | Total Hits | Verdict |
+|---|---|---|
+| `{{ vessel_name|lower }}` (broad) | <!-- N --> | <!-- NOISE/Clean negative/FALSE POSITIVE --> |
+| <!-- MMSI --> | | |
+| <!-- IMO --> | | |
+| <!-- callsign --> | | |
+| <!-- operator --> | | |
+
+<!-- Agent: Provide vessel attack-surface verdict. For older tankers with no VSAT web UI,
+     the attack surface is physical/RF/supply-chain, not IP-reachable. -->
+
+### 2.2 Maritime Protocol / Global Context Queries
+
+| Query | Total Hits | Notes |
+|---|---|---|
+| `signalk port:3000` | | |
+| `SAILOR 900 COBHAM VSAT` | | |
+| `NMEA 0183 NMEA 2000` | | |
+| `ECDIS chart navigation` | | |
+| `VSAT maritime` | | |
+| `Allegro-WebServer` | | |
+
+### 2.3 Regional Exposure Context (Facet Stats)
+
+<!-- Agent: If relevant, show top exposed ports for the vessel's flag state,
+     any high-risk regions in its operating area. None should be vessel-attributable. -->
+
+| Country | Total Indexed Hosts | Top Exposed Ports |
+|---|---|---|
+| <!-- flag state --> | | |
+
+---
+
+## PHASE 3 — VULNERABILITY ASSESSMENT
+
+### 3.1 Cyber Vulnerability Findings
+
+| ID | Finding | Severity | Confidence | Notes |
+|---|---|---|---|---|
+| V-001 | <!-- finding --> | | | |
+| V-002 | | | | |
+
+<!-- Agent: Assess: internet-facing attack surface, AIS data integrity, ownership transparency,
+     flag-hopping, armed security (if known), name-similarity deception vectors.
+     Severity: LOW/MEDIUM/HIGH/CRITICAL. Report zero findings explicitly if clean. -->
+
+### 3.2 CVE / Software-Specific Findings
+
+<!-- Agent: List CVEs attributable to the vessel (from Shodan host data if any hits).
+     If no CVEs: state "No CVEs attributable to {{ vessel_name|upper }}".
+     Do NOT attribute false-positive Shodan host CVEs to the vessel. -->
+
+---
+
+## PHASE 4 — THREAT INTELLIGENCE
+
+### 4.1 Active Incidents (if any)
+
+<!-- Agent: Search news wires (AP, BBC/Reuters, Al Jazeera), UKMTO advisories, IMO reports.
+     If vessel is involved in an active incident, document it with Tier-1 sources.
+     If no active incidents: state "No active incidents identified for {{ vessel_name|upper }}". -->
+
+### 4.2 Geopolitical Context
+
+<!-- Agent: Regional threat context — naval deterrence, sanctions regimes, piracy trends,
+     Houthi activity, territorial disputes affecting the vessel's operating area. -->
+
+### 4.3 Vessel-Specific Risk Indicators (Dark-Fleet Profile)
+
+| Indicator | Observed? | Evidence |
+|---|---|---|
+| Age >15 years | | |
+| Flag-of-convenience cycling | | |
+| Opaque single-entity ownership | | |
+| AIS anomalies / dark periods | | |
+| Sanctions-evasive route | | |
+| Unsanctioned status (watchlists) | | |
+| No armed security | | |
+| Russian origin / NSR history | | |
+
+<!-- Agent: Compute dark-fleet composite score (N/8 indicators).
+     State HIGH/MEDIUM/LOW with justification. -->
+
+---
+
+## PHASE 5 — RISK TIER & CONFIDENCE ASSESSMENT
+
+### 5.1 Overall Risk Tier: <!-- CRITICAL/HIGH/MEDIUM/LOW -->
+
+<!-- Agent: Justify the overall risk tier based on all phases. -->
+
+### 5.2 Confidence Assessment by Category
+
+| Category | Confidence | Basis |
+|---|---|---|
+| **Identity (name/IMO/MMSI/callsign/flag)** | | |
+| **Ownership** | | |
+| **Position (regional)** | | |
+| **Position (precise lat/long)** | | |
+| **Port call history** | | |
+| **Flag/name history** | | |
+| **Equasis PSC / class / P&I** | | |
+| **Shodan attack surface** | | |
+| **Dark-fleet profile** | | |
+
+### 5.3 Information Gaps (Recommended Follow-Up)
+
+<!-- Agent: List 3-6 follow-up actions to close data gaps:
+     1. Equasis PSC inspection history (if blocked by credentials)
+     2. Crew manifest
+     3. Beneficial ownership / corporate registry lookup
+     4. Real-time AIS subscription
+     5. Cargo & charterer identification
+     6. Any incident-specific follow-up -->
+
+---
+
+## SOURCE CROSS-REFERENCE TABLE
+
+| # | Source | Tier | Data Provided | URL |
+|---|---|---|---|---|
+| 1 | <!-- source --> | | | |
+
+<!-- Agent: List ALL independent sources cross-referenced (Tier 1 = news wires, official advisories;
+     Tier 2 = AIS aggregators, commercial databases; Tier 4 = Shodan).
+     Aim for 10+ sources. Count total at the end. -->
+
+---
+
+## METHODOLOGY APPENDIX (OPERATIONS STATS)
+
+| Phase | Tools Used | Sources Queried | Key Outputs | Status |
+|---|---|---|---|---|
+| Phase 0 (Equasis) | | | | |
+| Phase 1 (AIS) | | | | |
+| Phase 2 (Shodan) | | | | |
+| Phase 3 (Vulns) | | | | |
+| Phase 4 (Threat Intel) | | | | |
+| Phase 5 (Report) | Python open().write() | — | 3-file report | THIS FILE |
+
+<!-- Agent: Document total independent sources, tool call counts, and any failed/retried operations. -->
+
+---
+
+## ETHICAL & LEGAL FRAMEWORK
+
+This report uses **public sources only** (AIS aggregators, news media, Shodan indexed data, public registry aggregators). No private systems were accessed, no social engineering conducted, no stolen data purchased. All findings are derived from publicly available information and documented methodology per the OSINT Maritime Framework (Nasr et al., IEEE Access 2026). Proportionality principle observed: collection limited to vessel-identity, attack-surface, and threat-context data necessary for defensive maritime cyber-physical risk assessment.
+
+---
+
+*End of Analyst Report — {{ vessel_name|upper }}{% if imo %} (IMO {{ imo }}){% endif %} — {{ date }} — ShipCrawler OSINT Framework v{{ framework_version }}*

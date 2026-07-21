@@ -1,16 +1,12 @@
-/* Shipcrawler Globe — Three.js rotating particle globe */
+/* Rotating Globe — Three.js particle globe for dashboard right panel */
 (function() {
   if (typeof THREE === 'undefined') return;
 
-  const hero = document.getElementById('search-section');
-  if (!hero) return;
+  const container = document.getElementById('globe-container');
+  if (!container) return;
 
-  const container = document.createElement('div');
-  container.id = 'globe-container';
-  hero.insertBefore(container, hero.firstChild);
-
-  const W = container.clientWidth || hero.clientWidth;
-  const H = 420;
+  const W = container.clientWidth || 240;
+  const H = 200;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
@@ -79,7 +75,6 @@
     scene.add(new THREE.Line(ringGeo, ringMat));
   }
 
-  // Vertical rings
   for (let i = 0; i < 4; i++) {
     const theta = (i / 4) * Math.PI;
     const ringPos = [];
@@ -99,7 +94,7 @@
   }
 
   // ─── Sparkle Particles ───
-  const sparkleCount = 1200;
+  const sparkleCount = 600;
   const sparklePos = new Float32Array(sparkleCount * 3);
   for (let i = 0; i < sparkleCount; i++) {
     const theta = Math.random() * Math.PI * 2;
@@ -149,7 +144,7 @@
 
   // ─── Resize ───
   function resize() {
-    const w = container.clientWidth || hero.clientWidth;
+    const w = container.clientWidth || 240;
     camera.aspect = w / H;
     camera.updateProjectionMatrix();
     renderer.setSize(w, H);
