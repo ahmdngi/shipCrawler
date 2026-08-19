@@ -1,5 +1,16 @@
 # Changelog
 
+## v7.4.2 (2026-08-19)
+
+### Fixed
+- **Contradictory prompt removed.** Prompt said "use write_file" then "CRITICAL: use Python open().write()" — agent wasted turns trying both. Now single instruction: use write_file.
+- **Subprocess leak on timeout.** `proc.wait(timeout=30)` raised `TimeoutExpired` but never called `proc.kill()` — hermes process leaked. Now kills+waits on timeout.
+- **fsync removed from per-event progress writing.** `os.fsync()` on every SSE event added latency. `f.flush()` alone is sufficient for OS buffers.
+- **Renderer skips empty parent headings.** Was matching "PHASE 0 — VESSEL IDENTITY" (empty parent) instead of "0.1 Core Identity" (child with data). Now skips empty sections.
+- **Renderer field name mappings.** Skeleton template field names ("Current Name", "IMO Number", "Current Speed", etc.) didn't match frontend expectations. Added all skeleton field names to normalize mappings.
+- **Dashboard shows "Scan complete" when run finishes.** Terminal now shows green DONE badge before loading report, instead of staying frozen.
+- **All version strings updated** (v7.3 → v7.4 in HTML, JS, footer, app banner).
+
 ## v7.4.1 (2026-08-19)
 
 ### Fixed
