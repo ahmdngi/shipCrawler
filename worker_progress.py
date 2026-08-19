@@ -32,11 +32,10 @@ def write_event(task_id: str, event_type: str, **fields):
         **fields,
     }
 
-    # Single-writer: direct append + fsync
+    # Single-writer: direct append + flush (no fsync — OS buffers are fast enough for SSE)
     with open(log_path, "a") as f:
         f.write(json.dumps(record, default=str) + "\n")
         f.flush()
-        os.fsync(f.fileno())
 
 
 def phase_start(task_id: str, phase: int, name: str):
