@@ -1,5 +1,22 @@
 # Changelog
 
+## v7.4.1 (2026-08-19)
+
+### Fixed
+- **Version banner drift.** `app.py` printed "v6.3" while repo was at v7.4.
+  Now prints "v7.4" matching AGENTS.md and CHANGELOG.
+- AGENTS.md version updated from v7.3 to v7.4.
+
+### Known Issues (not yet addressed)
+- `parsers.py` (347 lines) + `services/analysis.py` (621 lines) — dead code,
+  zero imports. Scheduled for deletion.
+- No post-processing safety net (ampersand patching, skeleton sanitization) —
+  shipcrawler-worker has this, standalone does not yet.
+- Port drift: `app.py` runs 9091, `deploy/shipcrawler-dashboard.service` says 5000.
+- Subprocess leak: `worker.py:256` — `proc.wait(timeout=30)` with no `proc.kill()`.
+- Path traversal: `routes/api.py:315` — `<path:task_id>` allows slashes.
+- Zero test files.
+
 ## v7.4 (2026-08-19)
 
 ### Changed

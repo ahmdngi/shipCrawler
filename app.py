@@ -26,7 +26,7 @@ app = create_app()
 if __name__ == "__main__":
     import socket
 
-    print(f"  🚢 Shipcrawler OSINT Dashboard v6.3 (AI Agent)")
+    print(f"  🚢 Shipcrawler OSINT Dashboard v7.4 (AI Agent)")
     print(f"  🌐 http://{TAILSCALE_IP}:{PORT}")
     print(f"  🔒 Binding to Tailscale IP: {TAILSCALE_IP}")
     print()
