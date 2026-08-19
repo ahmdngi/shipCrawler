@@ -95,8 +95,10 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
                 "These are Jinja2 skeleton files with <!-- --> comment placeholders. "
                 "FILL IN each section by READING the skeleton, researching the data, "
                 "and OVERWRITING the placeholders with real findings. Do NOT discard "
-                "the skeleton structure — complete it. Use Python open().write() to "
-                "write the completed files.\n"
+                "the skeleton structure — complete it. Write the completed files using "
+                "the write_file tool. Never use bash heredocs (cat > << EOF) — they "
+                "truncate large markdown and corrupt special characters. If write_file "
+                "is unavailable, use Python open().write() via terminal.\n"
             )
         else:
             report_instruction = (
@@ -191,7 +193,7 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         HERMES_BIN, "chat",
         "-q", prompt,
         "--skills", "shipcrawler",
-        "-t", "web,terminal",
+        "-t", "web,terminal,file",
         "--yolo",
         "--max-turns", "150",
         "--source", "tool",

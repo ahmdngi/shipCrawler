@@ -1,5 +1,10 @@
 # Changelog
 
+## v7.4 (2026-08-19)
+
+### Changed
+- **Agent toolset now includes `file`** — `worker.py` launches `hermes chat -t web,terminal,file`, so the agent gets the native `write_file` tool. Prompt now tells the agent to write reports via `write_file` (falls back to Python `open().write()` only if the tool is unavailable), and explicitly bans bash heredocs which truncated reports and corrupted `&` characters.
+
 ## v7.3d (2026-08-19)
 
 ### Added
