@@ -97,8 +97,7 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
                 "and OVERWRITING the placeholders with real findings. Do NOT discard "
                 "the skeleton structure — complete it. Write the completed files using "
                 "the write_file tool. Never use bash heredocs (cat > << EOF) — they "
-                "truncate large markdown and corrupt special characters. If write_file "
-                "is unavailable, use Python open().write() via terminal.\n"
+                "truncate large markdown and corrupt special characters.\n"
             )
         else:
             report_instruction = (
@@ -127,11 +126,9 @@ def build_shipcrawler_prompt(name: str, mode: str, context: str, dir_suffix: str
             f"Phase 4: Threat Intelligence — maritime cyber incidents, news, geopolitical context\n"
             f"Phase 5: Report Generation\n\n"
             f"{report_instruction}"
-            f"CRITICAL: Write all report files using Python (open().write()) — NEVER use bash heredocs "
-            f"(cat > << EOF). Bash heredocs truncate large markdown files with special characters.\n\n"
             f"Be thorough — use multiple independent AIS sources, cross-reference Equasis data, "
             f"and report zero findings explicitly (it's a finding). Provide confidence levels.\n\n"
-            f"IMPORTANT: Save ALL 3 report files to the directory: {report_dir}/"
+            f"IMPORTANT: Save ALL 3 report files to the directory: {report_dir}"
         )
         content = content.replace("/root/AI agent-vault/osint-reports", "/root/hermes-vault/osint-reports")
         return content
@@ -258,6 +255,11 @@ def run_shipcrawler(task_id: str, name: str, mode: str, context: str, model: str
         exit_code = proc.returncode
 
     except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+            proc.wait()
+        except Exception:
+            pass
         stderr = "TIMEOUT: Shipcrawler took longer than 15 minutes"
         exit_code = -1
     except Exception as e:
