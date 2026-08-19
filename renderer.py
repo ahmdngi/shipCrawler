@@ -118,17 +118,18 @@ def extract_kv_table(text):
 def normalize_vessel_identity(identity):
     """Normalize vessel identity field names to match frontend expectations."""
     mapping = {
-        "name": "Name", "mmsi": "MMSI", "imo": "IMO", "flag": "Flag",
-        "type": "Type", "callsign": "Call Sign", "call sign": "Call Sign",
+        "name": "Name", "current name": "Name", "mmsi": "MMSI", "imo": "IMO",
+        "imo number": "IMO", "flag": "Flag", "type": "Type",
+        "ship type": "Type", "callsign": "Call Sign", "call sign": "Call Sign",
         "port of registry": "Port of Registry", "owner/operator": "Owner/Operator",
-        "operator": "Owner/Operator", "built": "Year Built", "builder": "Builder",
-        "length / beam": "Dimensions", "tonnage": "Gross Tonnage",
-        "gross tonnage": "Gross Tonnage", "deadweight": "DWT",
+        "operator": "Owner/Operator", "built": "Year Built", "year built": "Year Built",
+        "builder": "Builder", "length / beam": "Dimensions",
+        "tonnage": "Gross Tonnage", "gross tonnage": "Gross Tonnage",
+        "deadweight": "DWT", "deadweight (dwt)": "DWT",
         "service speed": "Service Speed", "max speed": "Max Speed",
         "capacity": "Passenger Capacity", "passenger capacity": "Passenger Capacity",
         "ice class": "Ice Class", "route": "Route", "cost": "Cost",
-        "year built": "Year Built", "dimensions": "Dimensions",
-        "fuel": "Fuel", "propulsion": "Propulsion",
+        "dimensions": "Dimensions", "fuel": "Fuel", "propulsion": "Propulsion",
     }
     normalized = {}
     for k, v in identity.items():
@@ -142,13 +143,18 @@ def normalize_vessel_status(status):
     """Normalize current status field names to match frontend expectations."""
     mapping = {
         "position": "Position", "location": "Position",
+        "last ais position": "Position", "reported area": "Position",
         "navigation status": "Status", "status": "Status",
         "sog": "Speed", "speed": "Speed", "average speed": "Speed",
-        "course": "Course", "cog": "Course", "heading": "Course", "true heading": "Course",
-        "destination": "Destination", "eta": "ETA",
-        "draught": "Draught", "last port": "Last Port",
-        "last ais update": "Last AIS Update", "last port": "Last Port",
+        "current speed": "Speed",
+        "course": "Course", "cog": "Course", "heading": "Course",
+        "true heading": "Course", "course/heading": "Course",
+        "destination": "Destination", "reported destination": "Destination",
+        "eta": "ETA", "eta (filed)": "ETA",
+        "draught": "Draught", "current draught": "Draught",
+        "last port": "Last Port", "last ais update": "Last AIS Update",
         "departure": "Departure", "distance travelled": "Distance Travelled",
+        "ais source": "AIS Source",
     }
     normalized = {}
     for k, v in status.items():
@@ -422,23 +428,29 @@ def render_vessel_report(report_dir):
         for sec_name in sections:
             if "vessel identity" in sec_name.lower() or "identity" in sec_name.lower():
                 sec = sections[sec_name]
+                if not sec.strip():
+                    continue  # skip empty parent headings
                 for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
                     identity[m.group(1).strip()] = m.group(2).strip()
                 # Fallback: parse kv table | **Name** | Value |
                 if not identity:
                     identity = extract_kv_table(sec)
-                break
+                if identity:
+                    break
         cards["vessel_identity"] = normalize_vessel_identity(identity)
 
         status = {}
         for sec_name in sections:
-            if "current status" in sec_name.lower() or "status" in sec_name.lower():
+            if any(kw in sec_name.lower() for kw in ("current status", "current position", "position & voyage", "status")):
                 sec = sections[sec_name]
+                if not sec.strip():
+                    continue  # skip empty parent headings
                 for m in re.finditer(r"\*\*([^*]+)\*\*:\s*([^\n]+)", sec):
                     status[m.group(1).strip()] = m.group(2).strip()
                 if not status:
                     status = extract_kv_table(sec)
-                break
+                if status:
+                    break
         cards["current_status"] = normalize_vessel_status(status)
 
         if "3. Port Call History" in sections:
