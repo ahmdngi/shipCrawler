@@ -663,7 +663,7 @@ const ShipcrawlerCore = (() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Reset terminal to welcome message
     var feed = document.getElementById('feed-body');
-    if (feed) feed.innerHTML = '<div class="terminal-prompt"><div style="color:var(--color-accent);font-weight:600;">$ shipcrawler --status</div><div style="margin-top:0.5rem;font-size:0.82rem;line-height:1.6;">ShipCrawler OSINT v7.3 — Maritime vessel reconnaissance</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">No active investigation. Enter a vessel name, IMO, or MMSI to begin.</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">Past investigations are available in the left sidebar.</div><div style="margin-top:0.5rem;color:var(--color-accent);">$ <span class="prompt-cursor">▊</span></div></div>';
+    if (feed) feed.innerHTML = '<div class="terminal-prompt"><div style="color:var(--color-accent);font-weight:600;">$ shipcrawler --status</div><div style="margin-top:0.5rem;font-size:0.82rem;line-height:1.6;">ShipCrawler OSINT v7.4 — Maritime vessel reconnaissance</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">No active investigation. Enter a vessel name, IMO, or MMSI to begin.</div><div style="margin-top:0.3rem;font-size:0.82rem;color:var(--color-ink-3);">Past investigations are available in the left sidebar.</div><div style="margin-top:0.5rem;color:var(--color-accent);">$ <span class="prompt-cursor">▊</span></div></div>';
     // Hide report section, summary, file tabs
     var rs = document.getElementById('report-section');
     if (rs) rs.classList.remove('visible');
