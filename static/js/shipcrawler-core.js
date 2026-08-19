@@ -348,7 +348,21 @@ const ShipcrawlerCore = (() => {
     if (sf) sf.textContent = data.report_files ? Object.keys(data.report_files).length : '0';
   }
 
-  function onDone(data) { localStorage.removeItem('shipcrawler-active-task'); _activeTaskId = null; _activeSSE = null; loadReport(data.task_id); }
+  function onDone(data) {
+    localStorage.removeItem('shipcrawler-active-task');
+    _activeTaskId = null;
+    _activeSSE = null;
+    // Show completion indicator in terminal
+    if (els.feedBody) {
+      var line = document.createElement('div');
+      line.className = 'phase-line phase-complete';
+      line.innerHTML = '<span class="phase-badge" style="background-color:#3fb950">DONE</span><span class="phase-content">✅ Scan complete — loading report...</span>';
+      els.feedBody.appendChild(line);
+      if (!_userScrolled) els.feedBody.scrollTop = els.feedBody.scrollHeight;
+    }
+    if (els.btn) { els.btn.disabled = false; els.btn.textContent = 'Search'; }
+    loadReport(data.task_id);
+  }
 
   function onError(msg) {
     if (!els.feed) return;
