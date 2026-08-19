@@ -1,0 +1,22 @@
+[Unit]
+Description=ShipCrawler Queue Worker - polls queue/pending, spawns Hermes agents
+After=network-online.target shipcrawler-dashboard.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/git-repos-personal/shipcrawler
+Environment=HOME=/root
+Environment=PATH=/usr/local/lib/hermes-agent/venv/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=-/root/.hermes/.env
+ExecStart=/root/venvs/dashboards/bin/python worker.py
+Restart=always
+RestartSec=5
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

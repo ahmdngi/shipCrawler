@@ -490,18 +490,28 @@ ls ~/hermes-vault/osint-reports/<name>-report/
 
 ### Worker not picking up tasks
 
+The queue worker is supervised by systemd as `shipcrawler-worker.service` (and the
+dashboard as `shipcrawler-dashboard.service`). **A scan queued in `pending/` but
+never starting means the worker service is down.**
+
 ```bash
-# Check worker is running
-ps aux | grep worker.py
+# Check both services
+systemctl is-active shipcrawler-dashboard.service shipcrawler-worker.service
+
+# Restart the worker (picks up pending queue)
+sudo systemctl restart shipcrawler-worker.service
+
+# Watch the worker log
+journalctl -u shipcrawler-worker -f
 
 # Check queue
 ls queue/pending/
 ls queue/running/
-
-# Restart worker
-kill $(pgrep -f worker.py)
-python3 worker.py &
 ```
+
+Unit files are tracked in `deploy/` — see `deploy/README.md` for installation.
+A manual one-shot helper also exists at `~/.hermes/scripts/shipcrawler-worker.sh`
+(for ad-hoc single-task runs); prefer the systemd service for normal operation.
 
 Queue directories are auto-created on worker start. If migrating from an older install, copy existing `queue/done/*.json` to preserve report stats.
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=ShipCrawler Dashboard - Vessel OSINT platform (port 5000)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/git-repos-personal/shipcrawler
+ExecStart=/root/venvs/dashboards/bin/python -c "from app import app; app.run(host='0.0.0.0', port=5000)"
+Restart=always
+RestartSec=5
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

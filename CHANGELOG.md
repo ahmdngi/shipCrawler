@@ -1,5 +1,14 @@
 # Changelog
 
+## v7.3d (2026-08-19)
+
+### Added
+- `deploy/` directory — tracked systemd unit files (`shipcrawler-dashboard.service`, `shipcrawler-worker.service`) with install README
+
+### Fixed
+- **Queue worker now supervised by systemd.** Previously run manually (`python3 worker.py &`), so a dead worker silently left queued scans in `pending/` forever (observed 2026-08-11 → 08-19). Now `shipcrawler-worker.service` polls the queue with `Restart=always`; the dashboard watchdog checks both services.
+- README "Worker not picking up tasks" now documents the systemd workflow instead of the broken manual `python3 worker.py &` instructions.
+
 ## v7.3 (2026-07-16)
 
 ### Added
