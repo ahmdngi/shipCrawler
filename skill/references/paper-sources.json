@@ -1,0 +1,116 @@
+{
+  "artifact": "paper-sources",
+  "version": "1.0.0",
+  "lastUpdated": "2026-08-25",
+  "description": "Operational data sources used in the ShipCrawler IEEE Access validation (Access-2026-38078, 63-vessel cohort, June-July 2026). This is the source set that produced the findings reported in the paper — distinct from the general OSINT catalog in sources.json.",
+  "paper": {
+    "title": "ShipCrawler: Agentic Open-Source Intelligence (OSINT) Platform for Maritime Cybersecurity — Implementation and Empirical Validation",
+    "manuscriptId": "Access-2026-38078",
+    "framework": "OSINT Maritime Framework (Nasr et al., IEEE Access 2026, DOI 10.1109/ACCESS.2026.3673557)"
+  },
+  "categories": [
+    {
+      "name": "Shipping registries",
+      "sources": [
+        {
+          "name": "Equasis",
+          "access": "equasis-cli (equasis vessel --imo <IMO>)",
+          "role": "Primary vessel identity: IMO, flag, call sign, MMSI, GT, DWT, type, year built, management companies, classification societies, PSC inspection history",
+          "rateLimit": "30-60 s between automated lookups; account lock after ~10 login attempts in a short window"
+        }
+      ]
+    },
+    {
+      "name": "Internet scanning",
+      "sources": [
+        {
+          "name": "Shodan",
+          "access": "Shodan Python API",
+          "role": "Host intelligence, port enumeration, CVE detection; queries by vessel name, MMSI, IMO, call sign, historical names; maritime filters (Cobham SAILOR 900, Signal K port 3000, country:EE)",
+          "rateLimit": "Free tier ~100 queries/month"
+        }
+      ]
+    },
+    {
+      "name": "AIS tracking",
+      "sources": [
+        {
+          "name": "MarineTraffic",
+          "access": "Web details page by MMSI (CloakBrowser anti-bot bypass required)",
+          "role": "Position, speed, course, destination, port call history"
+        },
+        {
+          "name": "VesselFinder",
+          "access": "Web details page by MMSI",
+          "role": "Position, speed, course, destination, port call history"
+        },
+        {
+          "name": "MyShipTracking",
+          "access": "Web details page by MMSI",
+          "role": "Position, speed, course, destination, port call history"
+        }
+      ],
+      "verificationRule": "3+ independent AIS sources agreeing = HIGH confidence on identity/position"
+    },
+    {
+      "name": "Web intelligence",
+      "sources": [
+        {
+          "name": "Firecrawl",
+          "access": "REST API (primary web search/extraction backend)",
+          "role": "Maritime news, company websites, port authority pages"
+        },
+        {
+          "name": "Bing",
+          "access": "Web search (fallback backend)",
+          "role": "Supplementary web search"
+        }
+      ]
+    },
+    {
+      "name": "Sanctions & threat intelligence",
+      "sources": [
+        {
+          "name": "OpenSanctions",
+          "access": "API",
+          "role": "Sanctions list cross-references"
+        },
+        {
+          "name": "Ukraine War & Sanctions database",
+          "access": "Web",
+          "role": "Sanctions designation verification (incl. personal sanctions)"
+        },
+        {
+          "name": "Greenpeace Baltic shadow fleet list",
+          "access": "Public list",
+          "role": "Shadow fleet cohort identification (63-vessel selection)"
+        },
+        {
+          "name": "OCCRP (Organized Crime and Corruption Reporting Project)",
+          "access": "Investigative journalism database",
+          "role": "Shell-company network identification (e.g., 31 Azerbaijan-registered entities managing sanctioned tankers)"
+        }
+      ]
+    },
+    {
+      "name": "Dissemination",
+      "sources": [
+        {
+          "name": "MISP",
+          "access": "MISP instance",
+          "role": "Threat intelligence sharing: IMO, MMSI, AIS dark periods, sanctions regimes"
+        },
+        {
+          "name": "Elasticsearch / Zeek / Wazuh",
+          "access": "Detection rule targets",
+          "role": "Generated indicators-and-detection rules formatted for direct import"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "All sources are publicly accessible; no data-sharing agreement required.",
+    "A negative Shodan result is reported as 'no vessel-attributable exposure identified' — not as proof of absence.",
+    "The 63-vessel cohort was deliberately limited to already-sanctioned vessels to avoid unapproved scanning of non-sanctioned operators."
+  ]
+}
