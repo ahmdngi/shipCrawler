@@ -103,6 +103,8 @@ hermes skills install shipcrawler
 
 This gives the AI agent access to all maritime OSINT tools (Equasis CLI, Shodan Python library, AIS sources, etc.).
 
+**Public methodology:** the agent's investigation methodology (phases, source chains, confidence protocol, reporting standards, ethical constraints) is published in the [`skill/`](skill/) directory of this repository. This is the reproducible methodology artifact referenced by the IEEE Access validation paper — it is the paper-facing distillation of the operational skill and is sufficient to reproduce the investigation methodology. The operational skill (installed via `hermes skills install`) additionally contains agent-runtime tooling notes not required for reproduction.
+
 ---
 
 ## Configuration
