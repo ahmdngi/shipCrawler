@@ -151,5 +151,6 @@ Mandatory pre-checks for every investigation:
 - `references/vessel-osint-report-template.md` — report deliverable structure
 - `references/ethical-framework.md` — full ethical and legal framework
 - `references/shodan-maritime-osint.md` — maritime-specific Shodan filters and query patterns
-- `references/sources.md` — OSINT sources catalog
+- `references/sources.md` — OSINT sources catalog (human-readable)
+- `references/sources.json` — OSINT source catalog (structured JSON, 279+ sources across 7 categories)
 - OSINT Maritime Framework: Nasr et al., "A Proactive Defense: An Open-Source Intelligence (OSINT) Framework for Maritime Cybersecurity," IEEE Access, 2026. DOI 10.1109/ACCESS.2026.3673557

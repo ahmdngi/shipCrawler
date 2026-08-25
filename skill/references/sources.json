@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-23",
+  "totalSources": 279,
+  "source": "https://github.com/lev-os/agents/tree/c09107a9440e963e012774acb459cb9f9a1aa5b5/skills-db/legal/osint",
+  "categories": [
+    {
+      "name": "github-repos",
+      "count": 43,
+      "description": "Open-source OSINT tools on GitHub",
+      "topTools": [
+        {"name": "sherlock", "stars": 73000, "url": "https://github.com/sherlock-project/sherlock", "description": "Username search across 400+ social networks"},
+        {"name": "maigret", "stars": 19000, "url": "https://github.com/soxoj/maigret", "description": "Dossier from 3000+ sites by username"},
+        {"name": "GHunt", "stars": 18400, "url": "https://github.com/mxrch/GHunt", "description": "Offensive Google framework"},
+        {"name": "spiderfoot", "stars": 16700, "url": "https://github.com/smicallef/spiderfoot", "description": "OSINT automation with 200+ modules"},
+        {"name": "phoneinfoga", "stars": 15900, "url": "https://github.com/sundowndev/phoneinfoga", "description": "Phone number intelligence"},
+        {"name": "theHarvester", "stars": 15700, "url": "https://github.com/laramies/theHarvester", "description": "Email/subdomain/URL gathering"},
+        {"name": "amass", "stars": 14200, "url": "https://github.com/owasp-amass/amass", "description": "Attack surface mapping (OWASP)"},
+        {"name": "holehe", "stars": 10200, "url": "https://github.com/megadose/holehe", "description": "Email-to-platform mapping"},
+        {"name": "blackbird", "stars": 5700, "url": "https://github.com/p1ngul1n0/blackbird", "description": "Account search across 600+ platforms"},
+        {"name": "recon-ng", "stars": 5400, "url": "https://github.com/lanmaster53/recon-ng", "description": "Modular web recon framework"}
+      ]
+    },
+    {
+      "name": "directories",
+      "count": 19,
+      "description": "Web-based OSINT portals and curated collections",
+      "topSources": [
+        "OSINT Framework (osintframework.com)",
+        "IntelTechniques (inteltechniques.com)",
+        "Bellingcat Toolkit (bellingcat.gitbook.io)",
+        "OSINT Dojo (osintdojo.com)",
+        "Hatless1der Ultimate OSINT Collection",
+        "Nixintel OSINT Resource List"
+      ]
+    },
+    {
+      "name": "people",
+      "count": 46,
+      "description": "People search, username/email/phone lookup, image recognition, social media",
+      "categories": ["People search engines", "Username lookup", "Email intelligence", "Phone lookup", "Image/face search", "Social media", "Academic/genealogy"]
+    },
+    {
+      "name": "business",
+      "count": 45,
+      "description": "Company registries, financial intelligence, competitive analysis",
+      "categories": ["Business registries", "Financial intelligence", "Domain/DNS intelligence", "Technology profiling", "Employee intelligence"]
+    },
+    {
+      "name": "threat",
+      "count": 50,
+      "description": "Threat intelligence, malware analysis, network scanning",
+      "categories": ["Malware analysis", "Threat platforms", "Scanning engines", "IP reputation", "URL analysis"]
+    },
+    {
+      "name": "training",
+      "count": 40,
+      "description": "OSINT training, certifications, CTF challenges",
+      "categories": ["OSINT Dojo", "TraceLabs CTF", "SANS courses", "IntelTechniques training"]
+    },
+    {
+      "name": "news-feeds",
+      "count": 20,
+      "description": "News aggregation, maritime security feeds, cybersecurity news"
+    }
+  ],
+  "notes": "Full structured JSON with per-source details (URL, cost model, coverage, API availability) available at the original GitHub repo. This catalog was synthesized from 6 parallel research agents."
+}
