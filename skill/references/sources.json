@@ -1,68 +1,158 @@
 {
+  "artifact": "paper-osint-tools",
   "version": "1.0.0",
-  "lastUpdated": "2026-02-23",
-  "totalSources": 279,
-  "source": "https://github.com/lev-os/agents/tree/c09107a9440e963e012774acb459cb9f9a1aa5b5/skills-db/legal/osint",
+  "lastUpdated": "2026-08-25",
+  "description": "OSINT platforms and tools catalogued in the OSINT Maritime Framework paper (Nasr et al., IEEE Access 2026, DOI 10.1109/ACCESS.2026.3673557). Six categories covering vessel tracking, regulatory intelligence, personnel, geospatial, digital infrastructure, and analytical tools. This replaces the generic OSINT catalog with the framework's own tool inventory.",
+  "framework": {
+    "title": "A Proactive Defense: An Open-Source Intelligence (OSINT) Framework for Maritime Cybersecurity",
+    "journal": "IEEE Access",
+    "year": 2026,
+    "doi": "10.1109/ACCESS.2026.3673557"
+  },
   "categories": [
     {
-      "name": "github-repos",
-      "count": 43,
-      "description": "Open-source OSINT tools on GitHub",
-      "topTools": [
-        {"name": "sherlock", "stars": 73000, "url": "https://github.com/sherlock-project/sherlock", "description": "Username search across 400+ social networks"},
-        {"name": "maigret", "stars": 19000, "url": "https://github.com/soxoj/maigret", "description": "Dossier from 3000+ sites by username"},
-        {"name": "GHunt", "stars": 18400, "url": "https://github.com/mxrch/GHunt", "description": "Offensive Google framework"},
-        {"name": "spiderfoot", "stars": 16700, "url": "https://github.com/smicallef/spiderfoot", "description": "OSINT automation with 200+ modules"},
-        {"name": "phoneinfoga", "stars": 15900, "url": "https://github.com/sundowndev/phoneinfoga", "description": "Phone number intelligence"},
-        {"name": "theHarvester", "stars": 15700, "url": "https://github.com/laramies/theHarvester", "description": "Email/subdomain/URL gathering"},
-        {"name": "amass", "stars": 14200, "url": "https://github.com/owasp-amass/amass", "description": "Attack surface mapping (OWASP)"},
-        {"name": "holehe", "stars": 10200, "url": "https://github.com/megadose/holehe", "description": "Email-to-platform mapping"},
-        {"name": "blackbird", "stars": 5700, "url": "https://github.com/p1ngul1n0/blackbird", "description": "Account search across 600+ platforms"},
-        {"name": "recon-ng", "stars": 5400, "url": "https://github.com/lanmaster53/recon-ng", "description": "Modular web recon framework"}
+      "name": "Vessel and port facility platforms",
+      "table": "TABLE 1",
+      "sources": [
+        {"name": "MarineTraffic", "link": "marinetraffic.com", "use": "Visualize global shipping traffic, monitor specific vessels in near real-time, analyze port activity, access ship particulars and photos"},
+        {"name": "VesselFinder", "link": "vesselfinder.com", "use": "Analyze fleet compositions, trade patterns, and vessel technical specifications for market intelligence"},
+        {"name": "Myshiptracking", "link": "myshiptracking.com", "use": "Raw, community-sourced AIS data for regions with limited commercial coverage"},
+        {"name": "Shipfinder", "link": "shipfinder.co", "use": "Mobile, on-the-go vessel tracking and navigation reference for field observations"},
+        {"name": "VesselTracker", "link": "vesseltracker.com", "use": "Visual, real-time confirmation of vessel presence in port via live webcam feeds, supplementing AIS data"},
+        {"name": "ShippingExplorer", "link": "shippingexplorer.net", "use": "Gather crowd-sourced intelligence on vessel locations, anchorages, and local conditions"},
+        {"name": "HiFleet", "link": "hifleet.com", "use": "Track cruise ship itineraries, monitor fleet movements, access schedules and deck plans"},
+        {"name": "AIS Hub", "link": "aishub.net", "use": "Community AIS feed access"},
+        {"name": "PocketMariner", "link": "pocketmariner.com", "use": "Mobile vessel tracking reference"},
+        {"name": "CruisingEarth", "link": "cruisingearth.com", "use": "Crowd-sourced cruising intelligence"},
+        {"name": "NoForeignLand", "link": "noforeignland.com/map/", "use": "Community vessel location and anchorage data"},
+        {"name": "Cruise Mapper", "link": "cruisemapper.com", "use": "Cruise itinerary and fleet tracking"},
+        {"name": "Superyachts.com", "link": "superyachts.com", "use": "Luxury yacht market investigation, ownership identification, high-value asset tracking"},
+        {"name": "TankerTrackers", "link": "tankertrackers.com/report/sanctioned", "use": "Identify and monitor sanctioned vessels or clandestine activity such as ship-to-ship transfers"},
+        {"name": "Planet Insights", "link": "insights.planet.com", "use": "Task and analyze high-frequency satellite imagery to monitor port infrastructure and vessels over time"},
+        {"name": "Copernicus Browser", "link": "browser.dataspace.copernicus.eu", "use": "Free access to high-resolution Sentinel SAR and optical imagery for wide-area maritime surveillance"},
+        {"name": "Bellingcat SAR Ship Detection Tool", "link": "ollielballinger.users.earthengine.app/view/ship-detection-tool", "use": "Programmatically search SAR satellite archives to locate vessels in any weather, day or night"},
+        {"name": "Shipspotting.com", "link": "www.shipspotting.com", "use": "Photographic evidence of vessel appearance, modifications, past names, and historical locations"},
+        {"name": "SkylineWebcams", "link": "skylinewebcams.com/en/live-cams-category/seaport-cams.html", "use": "Live visual verification of vessel presence and conditions at major ports"},
+        {"name": "Worldcam", "link": "worldcam.eu", "use": "Discover public webcams offering views of ports, waterways, or coastal areas"}
       ]
     },
     {
-      "name": "directories",
-      "count": 19,
-      "description": "Web-based OSINT portals and curated collections",
-      "topSources": [
-        "OSINT Framework (osintframework.com)",
-        "IntelTechniques (inteltechniques.com)",
-        "Bellingcat Toolkit (bellingcat.gitbook.io)",
-        "OSINT Dojo (osintdojo.com)",
-        "Hatless1der Ultimate OSINT Collection",
-        "Nixintel OSINT Resource List"
+      "name": "Administrative and regulatory maritime intelligence platforms",
+      "table": "TABLE 2",
+      "sources": [
+        {"name": "ILO/IMO Joint Database on Abandonment of Seafarers", "link": "wwwex.ilo.org/dyn/r/abandonment/seafarers/home", "use": "Investigate vessel/company history of labor violations and seafarer welfare issues as risk indicators"},
+        {"name": "Equasis.org", "link": "equasis.org/EquasisWeb/public/HomePage", "use": "Access ship safety inspections, detention records, and company performance for operational risk assessment"},
+        {"name": "ITU MARS", "link": "itu.int/mmsapp/shipstation/list", "use": "Verify vessel MMSI numbers to support radio communications tracking and AIS authentication"},
+        {"name": "GISIS", "link": "webaccounts.imo.org/Common/WebLogin.aspx?App=GISISPublic", "use": "Research official IMO documentation: company details, pollution incidents, vessel certificates"},
+        {"name": "HELCOM", "link": "maps.helcom.fi/website/mapservice", "use": "Monitor environmental and maritime safety data, incident reports, and shipping activity in the Baltic Sea region"},
+        {"name": "ICC Commercial Crime Services (CCS)", "link": "icc-ccs.org/map", "use": "Research piracy and armed robbery incident reports; check vessels against ICC database for maritime fraud"},
+        {"name": "PortTechnology.org", "link": "porttechnology.org", "use": "Gather intelligence on port security systems, terminal operations, and cybersecurity technologies"},
+        {"name": "Marine Cadastre (U.S.)", "link": "hub.marinecadastre.gov/pages/vesseltraffic", "use": "Visualize jurisdictional boundaries, offshore infrastructure, and vessel routes in U.S. waters"},
+        {"name": "Sea-Distances.org", "link": "sea-distances.org", "use": "Calculate port-to-port distances and durations to validate itineraries and identify travel anomalies"},
+        {"name": "NGA", "link": "msi.nga.mil/Publications/SDEnroute", "use": "Authoritative navigational intelligence, coastal descriptions, and maritime safety notices"},
+        {"name": "OpenCorporates", "link": "opencorporates.com", "use": "Map corporate hierarchies, identify beneficial owners, trace vessel ownership across jurisdictions"},
+        {"name": "Lloyd's List Intelligence", "link": "lloydslistintelligence.com", "use": "Commercial due diligence and financial/geopolitical risk assessment for shipping companies and vessels"},
+        {"name": "Black Book Online", "link": "blackbookonline.info/MaritimePublic-Records.aspx", "use": "Consolidated access to official maritime records for documentation and ownership verification"},
+        {"name": "World-ships.com", "link": "world-ships.com", "use": "Central lookup for vessel identification details, integrating ownership data with real-time AIS positions"},
+        {"name": "BoatInfoWorld.com", "link": "boatinfoworld.com", "use": "Research recreational and small commercial vessels not found in major maritime databases"},
+        {"name": "Marine Link", "link": "marinelink.com", "use": "Monitor industry news, company announcements, and maritime technology trends"},
+        {"name": "Maritime Database", "link": "maritime-database.com", "use": "Compile shipping company profiles, identify key personnel, analyze fleet compositions"},
+        {"name": "Regs4ships", "link": "regs4ships.com", "use": "Search international maritime regulations to verify vessel and company compliance posture"}
       ]
     },
     {
-      "name": "people",
-      "count": 46,
-      "description": "People search, username/email/phone lookup, image recognition, social media",
-      "categories": ["People search engines", "Username lookup", "Email intelligence", "Phone lookup", "Image/face search", "Social media", "Academic/genealogy"]
+      "name": "Crew and office personnel platforms",
+      "table": "TABLE 3",
+      "sources": [
+        {"name": "Crewlinker", "link": "crewlinker.com", "use": "Analyze crewing needs and hiring patterns to assess company operational tempo and expansion"},
+        {"name": "Crewbay", "link": "crewbay.com", "use": "Research personnel and activities in the private and recreational sailing sector"},
+        {"name": "Crewseekers", "link": "crewseekers.net", "use": "Gather intelligence on the global yachting community and vessel or skipper movements"},
+        {"name": "Findacrew", "link": "findacrew.com", "use": "Identify connections between vessels, skippers, and crew within the global boating network"},
+        {"name": "Sfsailing.com", "link": "sfsailing.com/sailing/index.cfm/crew/list/crew_main", "use": "Monitor local San Francisco sailing forum for crew positions and recreational sailing activity"},
+        {"name": "Sailorshub.in", "link": "sailorshub.in", "use": "Find seafarer profiles, monitor industry discussions, gather career and certification details"},
+        {"name": "OceanCrew.org", "link": "oceancrew.org", "use": "Analyze job postings to identify active shipping companies and potential fleet expansions"},
+        {"name": "CoBoaters", "link": "coboaters.com", "use": "Map personal connections and activity patterns in the private recreational boating community"},
+        {"name": "NGO Shipbreaking Platform", "link": "shipbreakingplatform.org", "use": "Investigate end-of-life vessels, shipbreaking practices, and environmental or labor violations"}
+      ]
     },
     {
-      "name": "business",
-      "count": 45,
-      "description": "Company registries, financial intelligence, competitive analysis",
-      "categories": ["Business registries", "Financial intelligence", "Domain/DNS intelligence", "Technology profiling", "Employee intelligence"]
+      "name": "Geospatial, environmental and infrastructure intelligence platforms",
+      "table": "TABLE 4",
+      "sources": [
+        {"name": "OpenSeaMap", "link": "openseamap.org", "use": "Community-updated nautical charts for route analysis and area familiarization"},
+        {"name": "OpenStreetMap", "link": "openstreetmap.org", "use": "Geographic base layer to verify coastal infrastructure and port context"},
+        {"name": "Google Maps", "link": "google.com/maps", "use": "Visual reconnaissance of port facilities and coastal installations"},
+        {"name": "Google Earth", "link": "earth.google.com", "use": "Commercial satellite and aerial imagery for monitoring vessel activity and infrastructure"},
+        {"name": "Soar Atlas", "link": "soaratlas.com/discover", "use": "Satellite imagery discovery for infrastructure monitoring"},
+        {"name": "Windy", "link": "windy.com", "use": "Integrate weather and ocean data to analyze voyage feasibility and environmental impacts"},
+        {"name": "Submarine Cable Map", "link": "subtelforum.com/submarine-cablemap", "use": "Identify undersea cable infrastructure and assess risks from maritime activity"}
+      ]
     },
     {
-      "name": "threat",
-      "count": 50,
-      "description": "Threat intelligence, malware analysis, network scanning",
-      "categories": ["Malware analysis", "Threat platforms", "Scanning engines", "IP reputation", "URL analysis"]
+      "name": "Digital infrastructure, social reconnaissance and cyber-threat intelligence platforms",
+      "table": "TABLE 5",
+      "sources": [
+        {"name": "Shodan", "link": "shodan.io", "use": "Actively scan for and identify exposed maritime ICS, onboard satellite terminals, and port network devices"},
+        {"name": "Censys", "link": "search.censys.io", "use": "Internet-wide scanning for exposed maritime systems"},
+        {"name": "ZoomEye", "link": "zoomeye.ai", "use": "Cyberspace search engine for exposed devices"},
+        {"name": "Netlas.io", "link": "netlas.io", "use": "Internet asset search and reconnaissance"},
+        {"name": "FOFA", "link": "en.fofa.info", "use": "Cyberspace asset mapping"},
+        {"name": "Criminal IP", "link": "criminalip.io", "use": "Threat intelligence enrichment of exposed assets"},
+        {"name": "Sherlock", "link": "github.com/sherlockproject/sherlock", "use": "Discover crew and employee social media profiles, professional emails, and historical company web pages"},
+        {"name": "Hunter.io", "link": "hunter.io/domain-search", "use": "Email and domain search to map organizational structures"},
+        {"name": "Recruit'em", "link": "recruitin.net", "use": "Social media profile discovery for personnel reconnaissance"},
+        {"name": "Wayback Machine", "link": "web.archive.org", "use": "Historical company web pages and content changes"},
+        {"name": "WhatsMyName Web", "link": "whatsmyname.app", "use": "Username enumeration across platforms"},
+        {"name": "Searchsystems.net", "link": "publicrecords.searchsystems.net", "use": "Public records search"},
+        {"name": "ViewDNS.info", "link": "viewdns.info", "use": "DNS and reverse IP reconnaissance"},
+        {"name": "Crt.sh", "link": "crt.sh", "use": "Certificate transparency log search for subdomain enumeration"},
+        {"name": "DNSdumpster", "link": "dnsdumpster.com", "use": "DNS recon and subdomain mapping"},
+        {"name": "TheHarvester", "link": "github.com/laramies/theHarvester", "use": "Email, subdomain, and URL gathering for footprint mapping"},
+        {"name": "IPinfo.io", "link": "ipinfo.io", "use": "IP address intelligence"},
+        {"name": "IP Geolocation API", "link": "ip2location.io", "use": "IP geolocation for infrastructure positioning"},
+        {"name": "Phonebook.cz", "link": "phonebook.cz", "use": "Email, domain, and subdomain search"},
+        {"name": "TinEye", "link": "tineye.com", "use": "Reverse image search for photo verification"},
+        {"name": "EXIF.tools", "link": "exif.tools", "use": "EXIF metadata extraction"},
+        {"name": "Forensically", "link": "29a.ch/photo-forensics/#forensicmagnifier", "use": "Photo forensics: analyze ship tour/port visit images to verify locations, timestamps, camera sources, forgeries"},
+        {"name": "Exifdata.com", "link": "exifdata.com", "use": "EXIF metadata analysis"},
+        {"name": "Have I Been Pwned", "link": "haveibeenpwned.com", "use": "Check if crew or corporate emails were exposed in data breaches (password intelligence)"},
+        {"name": "CVE.org", "link": "cve.org", "use": "Research known software vulnerabilities in maritime systems"},
+        {"name": "National Vulnerability Database", "link": "nvd.nist.gov", "use": "Authoritative vulnerability data"},
+        {"name": "ACLED", "link": "acleddata.com", "use": "Armed conflict location and event data for regional risk assessment"},
+        {"name": "Ahmia", "link": "ahmia.fi", "use": "Dark web search for threat intelligence"},
+        {"name": "DuckDuckGo on Tor", "link": "duckduckgo.com", "use": "Anonymous dark web search"},
+        {"name": "Haystak", "link": "torry.io/learn/haystak", "use": "Dark web search engine"},
+        {"name": "OnionLand", "link": "onionland.io", "use": "Dark web search"}
+      ]
     },
     {
-      "name": "training",
-      "count": 40,
-      "description": "OSINT training, certifications, CTF challenges",
-      "categories": ["OSINT Dojo", "TraceLabs CTF", "SANS courses", "IntelTechniques training"]
-    },
-    {
-      "name": "news-feeds",
-      "count": 20,
-      "description": "News aggregation, maritime security feeds, cybersecurity news"
+      "name": "Analytical and threat assessment tools",
+      "table": "TABLE 6",
+      "sources": [
+        {"name": "Maltego", "link": "maltego.com", "use": "Link analysis to map relationships between vessels, corporate entities, port calls, and digital infrastructure"},
+        {"name": "Gephi", "link": "gephi.org", "use": "Large-scale network analysis of shipping consortia, fleet operations, and communication patterns"},
+        {"name": "Octopus.do", "link": "octopus.do/sitemap/generator", "use": "Visual sitemaps and knowledge graphs to document investigation structure"},
+        {"name": "Nmap", "link": "nmap.org", "use": "Scan public IP ranges of vessels or ports to identify open ports, services, and operating systems"},
+        {"name": "Nikto", "link": "github.com/sullo/nikto", "use": "Scan maritime web servers for known security misconfigurations and vulnerabilities"},
+        {"name": "OpenVAS", "link": "openvas.org/", "use": "Vulnerability scanning of maritime systems"},
+        {"name": "Metasploit", "link": "metasploit.com", "use": "Validate vulnerabilities in authorized engagements to assess risk and impact"},
+        {"name": "Searchsploit", "link": "exploit-db.com/searchsploit", "use": "Exploit database search"},
+        {"name": "Lynis", "link": "cisofy.com/lynis", "use": "Security audits on Unix/Linux shipboard systems or shoreside servers for hardening and compliance"},
+        {"name": "Pulsedive", "link": "pulsedive.com", "use": "Enrich technical indicators with threat intelligence to assess association with malicious activity"},
+        {"name": "ONI Worldwide Threat to Shipping", "link": "oni.navy.mil/ONIReports/Shipping-ThreatReports/Worldwide-Threat-to-Shipping/", "use": "Research historical and current regional threats (piracy, conflict, terrorism) for voyage risk assessment"},
+        {"name": "GPS/GNSS Interference Map", "link": "gpsjam.org", "use": "Correlate vessel AIS anomalies with geographically mapped GPS jamming and spoofing incidents"},
+        {"name": "OSINT Framework", "link": "osintframework.com", "use": "Centralized curated directory of OSINT data sources and tools for maritime investigation"},
+        {"name": "OSINT Map by CybDetective", "link": "cybdetective.com/osintmap", "use": "Visual mind-map interface to navigate OSINT tools for different phases of inquiry"},
+        {"name": "Synapsint", "link": "synapsint.com", "use": "Aggregate searches across social media and public data platforms for maritime entities"},
+        {"name": "Google Dataset Search", "link": "datasetsearch.research.google.com", "use": "Discover specialized public datasets relevant to maritime research (port statistics, environmental data)"},
+        {"name": "Equasis CLI", "link": "github.com/rhinonix/equasis-cli", "use": "Query the Equasis database programmatically for vessel inspection, detention, and ownership history in bulk"},
+        {"name": "GPSwise", "link": "gpswise.aero/map", "use": "Track and visualize instances of GPS jamming and spoofing worldwide"}
+      ]
     }
   ],
-  "notes": "Full structured JSON with per-source details (URL, cost model, coverage, API availability) available at the original GitHub repo. This catalog was synthesized from 6 parallel research agents."
+  "notes": [
+    "All platforms are publicly accessible; no data-sharing agreement required.",
+    "This catalog is the framework paper's own tool inventory (Tables 1-6), replacing any generic OSINT source list.",
+    "The implementation paper (Access-2026-38078) operationalizes a subset of these tools: Equasis (via equasis-cli), Shodan, MarineTraffic, VesselFinder, MyShipTracking, OpenSanctions, OCCRP, Firecrawl/Bing, MISP — see paper-sources.json for the validation source set."
+  ]
 }
