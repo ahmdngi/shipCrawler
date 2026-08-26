@@ -1,4 +1,4 @@
-# ShipCrawler v7.3 — Agent Profile & Dynamic Model Selection
+# ShipCrawler v7.4 — Agentic Maritime OSINT Platform
 
 <p align="center">
   <img src="static/img/logo.png" alt="ShipCrawler Logo" width="400">
@@ -10,7 +10,7 @@ Real-time, phase-by-phase AI agent investigation with SSE streaming — watch ea
 
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)]()
 [![Language](https://img.shields.io/badge/language-Python-blue?style=flat-square)]()
-[![Stars](https://img.shields.io/github/stars/ahmdngi/shipcrawler?style=flat-square)](https://github.com/ahmdngi/shipcrawler)
+[![Stars](https://img.shields.io/github/stars/ahmdngi/shipCrawler?style=flat-square)](https://github.com/ahmdngi/shipCrawler)
 
 ---
 
@@ -18,7 +18,7 @@ Real-time, phase-by-phase AI agent investigation with SSE streaming — watch ea
 
 ```bash
 # 1. Clone
-git clone https://github.com/ahmdngi/shipcrawler.git
+git clone https://github.com/ahmdngi/shipCrawler.git
 cd shipcrawler
 
 # 2. Python environment
@@ -75,7 +75,7 @@ open http://localhost:9091
 ### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/ahmdngi/shipcrawler.git
+git clone https://github.com/ahmdngi/shipCrawler.git
 cd shipcrawler
 ```
 
@@ -188,7 +188,7 @@ source venv/bin/activate
 python3 app.py
 ```
 
-The dashboard runs on **port 9091**. Open `http://localhost:9091` in your browser.
+The dashboard runs on **port 9091** by default (override with `--port`). Open `http://localhost:9091` in your browser. The tracked systemd units in `deploy/` run the dashboard on port **5000** — see `deploy/README.md` for the supervised production setup (both services auto-restart on failure, plus a watchdog).
 
 Bind to a specific IP for remote access:
 
@@ -637,6 +637,8 @@ The model dropdown fetches from `/api/profiles/models` on profile change. Edit `
 
 ## Related
 
-- **[Shipcrawler-Parallel](https://github.com/ahmdngi/shipcrawler)** — Multi-agent variant for bulk vessel investigations
+- **[ShipCrawler-MCP](https://github.com/ahmdngi/shipcrawler-mcp)** — Model Context Protocol server exposing ShipCrawler OSINT tools (Equasis, AIS, Shodan, web OSINT) as typed MCP tools
+- **[Sirb](https://github.com/ahmdngi/sirb)** — Agnostic N-agent swarm framework that orchestrates ShipCrawler investigations in parallel
+- **[ShipCrawler-Worker](https://github.com/ahmdngi/shipcrawler-worker)** — Vessel OSINT worker package for Sirb (fast pipeline + agent mode)
 - **Project Haris** — Maritime edge security platform (defensive counterpart)
 - **OSINT Maritime Framework** — "A Proactive Defense: An Open-Source Intelligence (OSINT) Framework for Maritime Cybersecurity" — IEEE Access, vol. 14, 2026. DOI: [10.1109/ACCESS.2026.3673557](https://doi.org/10.1109/ACCESS.2026.3673557)
