@@ -43,69 +43,14 @@
 ```
 <!-- Agent: write the SIEM rule here -->
 ```
-
----
-
-## 3. ZEEK SCRIPTS
-
-<!-- Agent: Write 3-5 Zeek scripts for network-level detection.
-     Common scripts: AIS duplicate MMSI, AIS-radar/SAR correlation,
-     VSAT cleartext protocol policy, C2 beacon detection.
-     Include the haversine distance_nm helper if AIS scripts are needed. -->
-
-### 3.1 <!-- Script name (I-XXX) -->
-
-```zeek
-<!-- Agent: write the Zeek script here -->
-```
-
----
-
-## 4. WAZUH / OSQUERY RULES
-
-<!-- Agent: Write 2-3 Wazuh/osquery rules if applicable.
-     Common: USB device detection on shipboard bridge PC, DMARC email auth failure. -->
-
-### 4.1 <!-- Rule name (I-XXX) -->
-
-```xml
-<!-- Agent: write the Wazuh rule here -->
-```
-
-```sql
--- Agent: write the osquery pack here if applicable
-```
-
----
-
-## 5. GRAFANA ALERT RULES + DASHBOARD CONFIG
-
-<!-- Agent: Write Grafana alert rules (YAML) and dashboard JSON for the
-     highest-priority indicators. Include: speed anomaly, AIS stale, course deviation.
-     Dashboard panel types: stat, timeseries, geomap. -->
-
-### 5.1 Alert Rule: <!-- name (I-XXX) -->
-
-```yaml
-<!-- Agent: write the Grafana alert rule here -->
-```
-
-### 5.2 Dashboard JSON (drop-in panel)
-
-```json
-<!-- Agent: write the Grafana dashboard JSON here -->
-```
-
----
-
-## 6. M-SOC RUNBOOK (triage steps per alert type)
+## 3. M-SOC RUNBOOK (triage steps per alert type)
 
 <!-- Agent: Write 5-8 runbook sections, one per alert type from the indicator table.
      Each section has numbered triage steps: acknowledge, cross-correlate, check feeds,
      notify parties (owner, flag state, UKMTO, P+I), escalate, log.
      Reference indicator IDs and detection points (D1-N, D2-N, D3-N). -->
 
-### 6.1 <!-- Alert type (I-XXX) --> - <!-- CRITICAL/HIGH -->
+### 3.1 <!-- Alert type (I-XXX) --> - <!-- CRITICAL/HIGH -->
 
 1. **Acknowledge within <!-- time -->.** <!-- action -->
 2. **Cross-correlate.** <!-- action -->
@@ -116,7 +61,7 @@
 
 ---
 
-## 7. RECOMMENDED ONGOING MONITORING
+## 4. RECOMMENDED ONGOING MONITORING
 
 <!-- Agent: List 4-5 ongoing monitoring recommendations:
      1. Shodan network alert for vessel identifiers
