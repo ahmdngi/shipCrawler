@@ -31,14 +31,17 @@
 
 ---
 
-## 2. ELASTIC SIEM RULES (EQL / KQL / threshold)
+## 2. ELASTIC SIEM RULES (EQL / KQL)
 
 <!-- Agent: Write 5-9 Elastic SIEM rules for the highest-priority indicators.
-     Use EQL for sequence-based detection, KQL for query-bar, threshold for counts.
+     Emit detection rules in the two native Elastic Security rule-query languages ONLY:
+     EQL for sequence-based detection and KQL for query-bar/filter validation.
+     Do NOT use threshold/aggregation, ES|QL ('from ... | ...'), or Splunk-style
+     statements -- they are outside the ES-importable scope.
      Replace placeholder MMSI/IMO with actual values: {% if mmsi %}{{ mmsi }}{% else %}<MMSI>{% endif %}, {% if imo %}{{ imo }}{% else %}<IMO>{% endif %}.
      Reference indicator IDs (I-001, I-002, etc.) in comments. -->
 
-### 2.1 <!-- Rule name (I-XXX) --> - <!-- EQL/KQL/threshold -->
+### 2.1 <!-- Rule name (I-XXX) --> - <!-- EQL/KQL -->
 
 ```
 <!-- Agent: write the SIEM rule here -->
