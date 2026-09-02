@@ -299,7 +299,7 @@ ShipCrawler supports multiple Hermes agent profiles, each with its own model and
 | `default` | General purpose | deepseek-v4-flash | deepseek |
 | `local` | Local inference | qwen2.5:3b | custom:ollama |
 | `research` | Research-grade | deepseek-v4-flash | deepseek |
-| `shipcrawler` | Maritime OSINT | glm-5.2 | custom:UT-GLM5.2 |
+| `shipcrawler` | Maritime OSINT | glm-5.3 | custom:UT-GLM5.2 |
 
 ### Available models per profile
 
@@ -309,7 +309,7 @@ Defined in `profiles-models.json` at the project root. This file maps each profi
 {
   "shipcrawler": [
     {"value": "deepseek-v4-flash", "provider": "deepseek", "label": "DeepSeek V4 Flash"},
-    {"value": "glm-5.2", "provider": "custom:UT-GLM5.2", "label": "GLM 5.2"}
+    {"value": "glm-5.3", "provider": "custom:UT-GLM5.2", "label": "GLM 5.3"}
   ]
 }
 ```

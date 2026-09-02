@@ -162,9 +162,9 @@
       "label": "GPT-4o Mini"
     },
     {
-      "value": "glm-5.2",
+      "value": "glm-5.3",
       "provider": "custom:UT-GLM5.2",
-      "label": "GLM 5.2"
+      "label": "GLM 5.3"
     }
   ]
 }
