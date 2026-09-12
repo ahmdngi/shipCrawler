@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ShipCrawler Platform Architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "/root/user-notes/shipcrawler-architecture.html"
+  },
+  "components": [
+    { "id": "analyst", "type": "external", "label": "Analyst", "pos": [30, 300], "size": [120, 58] },
+    { "id": "dashboard", "type": "frontend", "label": "Flask Dashboard", "pos": [290, 300], "size": [146, 58] },
+    { "id": "queue", "type": "messagebus", "label": "Task Queue", "pos": [580, 300], "size": [150, 58] },
+    { "id": "worker", "type": "backend", "label": "Queue Worker", "pos": [870, 300], "size": [150, 58] },
+    { "id": "agent", "type": "backend", "label": "Hermes Agent", "pos": [1160, 300], "size": [150, 58] },
+    { "id": "tools", "type": "security", "label": "Agent Toolset", "pos": [1450, 300], "size": [150, 58] },
+    { "id": "llm", "type": "cloud", "label": "UT-HPC vLLM", "pos": [1160, 80], "size": [150, 58] },
+    { "id": "progress", "type": "messagebus", "label": "Phase Event Stream", "pos": [290, 640], "size": [146, 58] },
+    { "id": "reports", "type": "database", "label": "Report Store", "pos": [1160, 640], "size": [150, 58] },
+    { "id": "osint", "type": "external", "label": "OSINT Sources", "pos": [1450, 640], "size": [150, 58] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "UT HPC - vLLM endpoint", "wraps": ["llm"], "pad": 16 }
+  ],
+  "connections": [
+    { "from": "analyst", "to": "dashboard", "label": "IMO or MMSI", "variant": "emphasis" },
+    { "from": "dashboard", "to": "queue", "label": "task JSON", "variant": "emphasis" },
+    { "from": "queue", "to": "worker", "label": "claim task", "variant": "emphasis" },
+    { "from": "worker", "to": "agent", "label": "spawn agent", "variant": "emphasis" },
+    { "from": "agent", "to": "tools", "label": "tool calls" },
+    { "from": "agent", "to": "llm", "label": "GLM-5.3", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelAt": [1235, 227] },
+    { "from": "agent", "to": "reports", "label": "write_file", "fromSide": "bottom", "toSide": "top", "labelAt": [1235, 480] },
+    { "from": "worker", "to": "progress", "label": "phase events", "fromSide": "bottom", "toSide": "right", "labelAt": [690, 671] },
+    { "from": "progress", "to": "dashboard", "label": "live SSE", "fromSide": "top", "toSide": "bottom", "labelAt": [363, 499] },
+    { "from": "tools", "to": "osint", "label": "queries", "fromSide": "bottom", "toSide": "top", "labelAt": [1525, 480] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Two Decoupled Processes", "items": ["Flask dashboard (app.py, port 5000) takes the target and serves the SSE stream", "Queue worker (worker.py) polls pending, running and done every 5s", "Reports land in the osint-reports vault directory"] },
+    { "dot": "emerald", "title": "Agent Execution", "items": ["One hermes chat session per vessel, max 150 turns, tools web terminal file", "Six phase OSINT loop, model pinned to GLM-5.3 on UT-HPC vLLM (4x B200)", "Report files are written through the file tool, never bash heredocs"] },
+    { "dot": "rose", "title": "Outputs And Optional Front Ends", "items": ["analyst-report.md, red-team-playbook.md, indicators-and-detection.md", "Phase transitions stream to the browser over SSE (stream_formatter.py)", "Sirb submits batch runs to the same queue; shipcrawler-mcp exposes typed tools to any MCP client"] }
+  ]
+}

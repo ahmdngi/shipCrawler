@@ -427,6 +427,8 @@ Each phase → AI agent with shipcrawler OSINT skills
   └── Reports saved to ~/hermes-vault/osint-reports/
 ```
 
+> **Interactive architecture diagram:** [`docs/shipcrawler-architecture.html`](docs/shipcrawler-architecture.html) — self-contained HTML (dark/light themes, pan/zoom, search, PNG/SVG export). Source spec: [`docs/shipcrawler-architecture.json`](docs/shipcrawler-architecture.json). It opens dark by default; append `?theme=dark` to force dark regardless of host OS preference.
+
 ### Components
 
 | Component | File | Role |
