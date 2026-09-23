@@ -40,7 +40,7 @@ Establish current position, movement, and port-call behaviour from at least two 
 
 **Extraction pattern:** discover MMSI via search if unknown, then extract structured data from each AIS source by MMSI. Cross-reference all sources; flag discrepancies. 3+ independent sources = HIGH confidence on identity and position.
 
-**Behavioural analysis:** speed profile, port call history, home zone, recurring routes, anchorage vs. moored ratio, AIS dark periods (>12 h near sanctioned ports), false destination fields.
+**Behavioural analysis:** speed profile, port call history, home zone, recurring routes, anchorage vs. moored ratio, AIS dark periods (candidate gaps over 12 h in the recorded approach to sanctioned ports; require coverage at both ends and independent corroboration before treating as a confirmed dark operation), false destination fields.
 
 ### Phase 2: Attack Surface Discovery (Shodan)
 
