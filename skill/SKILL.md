@@ -109,12 +109,16 @@ Confidence is assigned per finding category using a tiered adaptation of structu
 
 ## Risk Tier Classification
 
-Risk tier assignment is **rule-based and deterministic** (not LLM-dependent):
+Tier assignment is governed by a published deterministic rubric: the tier follows the decision table below applied to the five shadow-fleet signatures documented in the investigation package, rather than free-form model judgement.
 
-- **CRITICAL:** 5+ active sanctions regimes AND withdrawn IACS classification AND confirmed AIS dark operations AND no disclosed P&I insurance.
-- **HIGH:** multiple sanctions regimes, or withdrawn classification with AIS dark periods, or vessels >20,000 GT on international passenger routes with exploitable IP exposure.
-- **MEDIUM:** general cargo and container ships; single sanctions regime.
-- **LOW:** pleasure craft with no detectable internet exposure.
+The five signatures: (1) opaque ownership chain; (2) flag-hopping; (3) confirmed AIS dark operations; (4) withdrawn or non-IACS classification; (5) missing or shell P&I cover (no P&I club listed in the accessible registries).
+
+- **CRITICAL:** four or more of the five signatures confirmed, or three confirmed together with a documented kinetic incident against the vessel itself (for example a naval-drone strike).
+- **HIGH:** three of the five signatures confirmed, with no documented kinetic incident against the vessel.
+- **MEDIUM:** two of the five signatures confirmed.
+- **LOW:** one or none of the five signatures confirmed.
+
+Sanctions-regime breadth, port-state-control history, and trade-route context are recorded in the report as context; they do not enter the tier decision. An `n.d.` entry for a signature means the item was not documented in the accessible records, not that it was verified absent.
 
 ---
 
