@@ -210,19 +210,26 @@
 
 ### 4.3 Vessel-Specific Risk Indicators (Dark-Fleet Profile)
 
-| Indicator | Observed? | Evidence |
-|---|---|---|
-| Age >15 years | | |
-| Flag-of-convenience cycling | | |
-| Opaque single-entity ownership | | |
-| AIS anomalies / dark periods | | |
-| Sanctions-evasive route | | |
-| Unsanctioned status (watchlists) | | |
-| No armed security | | |
-| Russian origin / NSR history | | |
+Record each of the five shadow-fleet signatures below as confirmed (Y),
+not present (N), or not documented in the accessible records (n.d.).
+An n.d. entry reflects absence from the accessible records, not a verified
+absence in fact. These five signatures are the ONLY inputs to the tier
+decision in Phase 5. Sanctions-regime breadth, PSC history, ISM/manager
+churn, trade-route context, vessel age, and internet-exposure findings are
+recorded as context elsewhere in the report; they do not enter the tier.
 
-<!-- Agent: Compute dark-fleet composite score (N/8 indicators).
-     State HIGH/MEDIUM/LOW with justification. -->
+| # | Signature | Status (Y/N/n.d.) | Evidence |
+|---|---|---|---|
+| 1 | Opaque ownership chain | | |
+| 2 | Flag-hopping | | |
+| 3 | Confirmed AIS dark operations | | |
+| 4 | Withdrawn or non-IACS classification | | |
+| 5 | Missing or shell P&I cover (no P&I club listed in the accessible registries) | | |
+
+<!-- Agent: Count the confirmed signatures (Y). Do NOT score anything else
+     into the tier. A documented kinetic incident against the vessel itself
+     (for example a naval-drone strike) matters only at exactly three
+     confirmed signatures. -->
 
 ---
 
@@ -230,7 +237,12 @@
 
 ### 5.1 Overall Risk Tier: <!-- CRITICAL/HIGH/MEDIUM/LOW -->
 
-<!-- Agent: Justify the overall risk tier based on all phases. -->
+<!-- Agent: Apply this decision table to the confirmed (Y) count from 4.3.
+     CRITICAL = four or more confirmed, or three confirmed together with a
+     documented kinetic incident against the vessel itself.
+     HIGH = three confirmed, with no documented kinetic incident.
+     MEDIUM = two confirmed. LOW = one or none.
+     Justify the tier from the signature count only. -->
 
 ### 5.2 Confidence Assessment by Category
 
