@@ -29,7 +29,6 @@ Published in IEEE Access 2026 — Nasr, Zaitseva-Pärnaste, Kujala, *ShipCrawler
 - [Published Paper](#published-paper)
 - [Troubleshooting](#troubleshooting)
 - [Changelog](#changelog)
-- [Related](#related)
 
 ---
 
@@ -215,11 +214,3 @@ Current: **v7.4.2** — full history in [CHANGELOG.md](CHANGELOG.md).
 - **v7.4** — agent toolset includes `file` tools; heredocs banned
 - **v7.3** — 3-column layout, theme system (Dark/Light/Classic), SSE replay, exec summary badges
 - **v6.4** — queue states, PWA, mobile responsive, profile/model dropdowns
-
-## Related
-
-- **[ShipCrawler 2.0 (Geo-Watch)](https://github.com/ShipCrawler/shipcrawler-2.0)** — Agentic maritime perimeter awareness for offshore wind (Baltic Hackathon line)
-- **[Sirb](https://github.com/ahmdngi/sirb)** — Agnostic N-agent swarm framework that orchestrates ShipCrawler investigations in parallel
-- **[ShipCrawler-Worker](https://github.com/ahmdngi/shipcrawler-worker)** — Vessel OSINT worker package for Sirb
-- **[ShipCrawler-MCP](https://github.com/ahmdngi/shipcrawler-mcp)** — MCP server exposing ShipCrawler OSINT tools as typed MCP tools
-- **Project Haris** — Maritime edge security platform (defensive counterpart)
