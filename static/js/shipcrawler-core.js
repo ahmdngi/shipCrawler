@@ -883,18 +883,35 @@ const ShipcrawlerCore = (() => {
     var m = reportText.match(/##\s*\d*\.?\s*(?:EXECUTIVE\s*)?SUMMARY\s*\n([\s\S]*?)(?:\n##|\n---|\n\*\*Overall)/i);
     var summary = m ? m[1].trim().split('\n\n')[0].trim().replace(/\*\*/g,'').replace(/\[.*?\]/g,'').substring(0,400) : '';
 
-    // Warning badges
-    var warnings = [];
-    if (/shadow\s*fleet|dark\s*fleet/i.test(reportText)) warnings.push('🔴 SHADOW FLEET');
-    if (/sanctioned|sanctions/i.test(reportText)) warnings.push('🟡 SANCTIONED');
-    if (/AIS\s*shutdown|AIS\s*dark|AIS\s*off/i.test(reportText)) warnings.push('🟠 AIS DARK');
-    if (/kinetic|drone|attack|strike/i.test(reportText)) warnings.push('💥 KINETIC THREAT');
-    if (/casualty|repairing/i.test(reportText)) warnings.push('⚠️ IN CASUALTY');
+    // Badges — read from the authoritative lines only, never keyword-grep.
+    // Tier comes from section 5.1; signature badges come from confirmed (Y)
+    // cells in the 4.3 five-signature table. A negated mention or boilerplate
+    // word elsewhere in the report must not badge the vessel.
+    var badges = [];
+    var tm = reportText.match(/^###\s*5\.1\s+Overall Risk Tier:\s*(CRITICAL|HIGH|MEDIUM|LOW)/im);
+    var tier = tm ? tm[1].toUpperCase() : null;
+    if (tier) badges.push('TIER: ' + tier);
+    var sec43 = reportText.match(/###\s*4\.3[\s\S]*?(?=###\s*5\.1|##\s*PHASE 5|$)/i);
+    if (sec43) {
+      var SIG_LABELS = {
+        1: 'OPAQUE OWNERSHIP', 2: 'FLAG-HOPPING', 3: 'AIS DARK',
+        4: 'WITHDRAWN CLASS', 5: 'NO P&I'
+      };
+      sec43[0].split('\n').forEach(function (line) {
+        var cells = line.split('|').map(function (c) { return c.trim(); });
+        // New-table rows: | N | Signature | Status | Evidence |
+        if (cells.length >= 5 && /^\d$/.test(cells[1]) && /^y$/i.test(cells[3])) {
+          var label = SIG_LABELS[parseInt(cells[1], 10)];
+          if (label) badges.push(label);
+        }
+      });
+    }
 
-    var border = warnings.length ? 'var(--color-red,#e34)' : 'var(--color-green,#3fb950)';
+    var border = (tier === 'CRITICAL' || tier === 'HIGH')
+      ? 'var(--color-red,#e34)' : 'var(--color-green,#3fb950)';
     var html = '<div style="font-weight:600;color:var(--color-accent);font-size:0.92rem;">' + escapeHtml(vesselName) + '</div>';
-    if (warnings.length) {
-      html += '<div style="margin-top:0.3rem;">' + warnings.map(function(w) {
+    if (badges.length) {
+      html += '<div style="margin-top:0.3rem;">' + badges.map(function(w) {
         return '<span style="background:rgba(228,51,68,0.15);color:#e34;padding:0.15rem 0.5rem;border-radius:3px;font-size:0.7rem;margin-right:0.3rem;">' + w + '</span>';
       }).join('') + '</div>';
     }
