@@ -1,14 +1,8 @@
-# ShipCrawler — Agentic Maritime OSINT Platform (1.x production line)
-
-<p align="center">
-  <img src="static/img/logo.png" alt="ShipCrawler Logo" width="400">
-</p>
+# ShipCrawler — Agentic Maritime OSINT Platform
 
 **v7.4** — The production vessel-OSINT dashboard. Real-time, phase-by-phase AI agent investigation of any vessel with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection. Per-scan Hermes agent profiles, each with its own model/provider configuration.
 
 Published in IEEE Access 2026 — Nasr, Zaitseva-Pärnaste, Kujala, *ShipCrawler: Agentic Open-Source Intelligence (OSINT) Platform for Maritime Cybersecurity – Implementation and Empirical Validation*, DOI [10.1109/ACCESS.2026.3744593](https://ieeexplore.ieee.org/document/11740887). Builds on the OSINT Maritime Framework methodology (IEEE Access, vol. 14, 2026).
-
-> **This is the 1.x production line.** Development of ShipCrawler 2.0 (Geo-Watch — agentic maritime perimeter awareness for offshore wind) happens in [`ShipCrawler/shipcrawler-2.0`](https://github.com/ShipCrawler/shipcrawler-2.0). This repo carries the vessel-OSINT dashboard and the IEEE Access validation evidence tooling.
 
 [![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)]()
 [![Language](https://img.shields.io/badge/language-Python-blue?style=flat-square)]()
