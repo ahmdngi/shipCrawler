@@ -6,7 +6,7 @@
 
 **v7.4** — The production vessel-OSINT dashboard. Real-time, phase-by-phase AI agent investigation of any vessel with SSE streaming — watch each OSINT phase execute live in the browser. Persists across page refreshes with automatic SSE reconnection. Per-scan Hermes agent profiles, each with its own model/provider configuration.
 
-Built on the OSINT Maritime Framework methodology (IEEE Access 2026) — the peer-reviewed, validated pipeline (25-run stability study, IEEE Access manuscript 2026-38078).
+Published in IEEE Access 2026 — Nasr, Zaitseva-Pärnaste, Kujala, *ShipCrawler: Agentic Open-Source Intelligence (OSINT) Platform for Maritime Cybersecurity – Implementation and Empirical Validation*, DOI [10.1109/ACCESS.2026.3744593](https://ieeexplore.ieee.org/document/11740887). Builds on the OSINT Maritime Framework methodology (IEEE Access, vol. 14, 2026).
 
 > **This is the 1.x production line.** Development of ShipCrawler 2.0 (Geo-Watch — agentic maritime perimeter awareness for offshore wind) happens in [`ShipCrawler/shipcrawler-2.0`](https://github.com/ShipCrawler/shipcrawler-2.0). This repo carries the vessel-OSINT dashboard and the IEEE Access validation evidence tooling.
 
@@ -26,7 +26,7 @@ Built on the OSINT Maritime Framework methodology (IEEE Access 2026) — the pee
 - [API Reference](#api-reference)
 - [Architecture](#architecture)
 - [Production Deployment](#production-deployment)
-- [IEEE Access Validation](#ieee-access-validation)
+- [Published Paper](#published-paper)
 - [Troubleshooting](#troubleshooting)
 - [Changelog](#changelog)
 - [Related](#related)
@@ -188,11 +188,12 @@ journalctl -u shipcrawler-worker -f                  # live worker log
 
 Dashboard serves **port 5000** in production (`deploy/shipcrawler-dashboard.service`), worker polls `queue/pending/` every 2 s. Unit files tracked in `deploy/` — see `deploy/README.md`.
 
-## IEEE Access Validation
+## Published Paper
 
-This repo is the tool behind the OSINT Maritime Framework paper (IEEE Access, vol. 14, 2026, DOI [10.1109/ACCESS.2026.3673557](https://doi.org/10.1109/ACCESS.2026.3673557)):
+This repo is the tool behind *ShipCrawler: Agentic Open-Source Intelligence (OSINT) Platform for Maritime Cybersecurity – Implementation and Empirical Validation* — Nasr, Zaitseva-Pärnaste, Kujala, IEEE Access 2026, DOI [10.1109/ACCESS.2026.3744593](https://ieeexplore.ieee.org/document/11740887).
 
-- Manuscript + response: [`shipcrawler-paper`](https://github.com/ahmdngi/shipcrawler-paper) (Access-2026-38078)
+- Reproducible methodology artifact: [`skill/`](skill/) (published deterministic rubric)
+- Manuscript + review record: [`shipcrawler-paper`](https://github.com/ahmdngi/shipcrawler-paper) (Access-2026-38078)
 - Reviewer evidence bundle (authoritative): `shipcrawler-review-evidence` — treatment/control/stability packages, validation ledger
 - 25-run stability study: modal-exact 20/25, within-one-tier 25/25
 - Quantization-pinned reruns: OpenRouter Decart endpoint serving the identical NVFP4 build
